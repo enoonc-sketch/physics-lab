@@ -1,0 +1,760 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Physics Lab 3.0 · 物理计算与可视化实验室</title>
+<style>
+:root{--bg:#0b1020;--panel:#121a2e;--panel2:#18233b;--line:#2b3957;--text:#e9f0ff;--muted:#9aabc8;--cyan:#55d6e8;--blue:#7197ff;--orange:#ffb45c;--green:#7fe0a2}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,"Microsoft YaHei",sans-serif}
+header{height:66px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:#0e1629;position:sticky;top:0;z-index:5}
+.brand{font-weight:800;font-size:18px;letter-spacing:.3px}.brand span{color:var(--cyan)}.sub{color:var(--muted);font-size:12px;margin-left:12px}
+.status{color:var(--green);font-size:12px}
+.app{display:grid;grid-template-columns:230px minmax(0,1fr);min-height:calc(100vh - 66px)}
+nav{border-right:1px solid var(--line);padding:18px 12px;background:#0e1629}
+.navlabel{color:#7183a4;font-size:10px;font-weight:700;letter-spacing:1.4px;padding:10px 12px 6px}
+.navbtn{width:100%;border:0;background:transparent;color:#b7c5df;text-align:left;padding:10px 12px;border-radius:8px;cursor:pointer;margin:2px 0;font-size:13px}
+.navbtn:hover,.navbtn.active{background:#1b2b49;color:white}.navbtn.active{box-shadow:inset 3px 0 var(--cyan)}
+main{padding:22px;max-width:1600px;width:100%;margin:auto}
+.topline{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:18px}
+h1{font-size:23px;margin:0 0 4px}.desc{color:var(--muted);font-size:12px}
+.pill{border:1px solid #31506a;color:var(--cyan);padding:4px 9px;border-radius:20px;font-size:11px;white-space:nowrap}
+.layout{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(290px,.8fr);gap:16px}
+.visuals{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.panelhead{padding:10px 13px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;color:#cbd8ef;font-weight:650;font-size:12px}
+canvas{display:block;width:100%;height:300px;background:radial-gradient(ellipse at center,#111d34,#0b1222)}
+.chart canvas{height:170px}
+.controls{padding:15px}.control{margin:0 0 16px}.controltop{display:flex;justify-content:space-between;gap:8px;margin-bottom:6px;color:#cbd8ef;font-size:12px}
+output{color:var(--cyan);font-variant-numeric:tabular-nums}input[type=range]{width:100%;accent-color:var(--cyan)}
+select,button{font:inherit}select{background:#1a2944;color:var(--text);border:1px solid #354969;padding:8px;border-radius:7px;width:100%}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.btn{background:#1c3152;border:1px solid #3b557d;color:#eaf2ff;padding:8px 12px;border-radius:7px;cursor:pointer}.btn.primary{background:#126277;border-color:#268ba0}.btn:hover{filter:brightness(1.15)}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.metric{background:#0d172a;border:1px solid #253653;border-radius:8px;padding:9px}.metric small{display:block;color:var(--muted);font-size:10px}.metric strong{font-size:16px;font-variant-numeric:tabular-nums}
+.lower{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;margin-top:16px}
+.textpanel{padding:14px}.textpanel h3{font-size:13px;margin:0 0 9px}.formula{background:#0c1527;border:1px solid #253653;padding:11px;border-radius:8px;font-family:Cambria,serif;font-size:16px;overflow:auto;margin:8px 0}.note{color:var(--muted);font-size:12px}.log{font:11px/1.7 ui-monospace,monospace;color:#9fb4d6;white-space:pre-wrap}
+table.vtab{width:100%;border-collapse:collapse;font-size:11px;margin:8px 0}table.vtab th,table.vtab td{border:1px solid #253653;padding:5px 6px;text-align:right;font-variant-numeric:tabular-nums}table.vtab th{text-align:left;color:#9aabc8}table.vtab td:first-child,table.vtab th:first-child{text-align:left}
+.badge{display:inline-block;padding:2px 7px;border-radius:12px;font-size:11px;background:#12351f;color:#7fe0a2;border:1px solid #2a5a3a}.badge.warn{background:#3a2a12;color:#ffb45c;border-color:#6a4a2a}
+footer{color:#7083a5;font-size:10px;text-align:center;padding:20px}
+@media(max-width:1000px){.layout{grid-template-columns:1fr}.app{grid-template-columns:190px 1fr}}
+@media(max-width:720px){.app{display:block}nav{display:flex;overflow:auto;border-right:0;border-bottom:1px solid var(--line);padding:8px}.navlabel{display:none}.navbtn{white-space:nowrap;width:auto}.visuals,.lower{grid-template-columns:1fr}main{padding:13px}header{padding:0 13px}.sub{display:none}}
+</style></head>
+<body>
+<header><div><span class="brand">⚛ Physics <span>Lab</span></span><span class="sub">物理计算与可视化实验室 · 3.0</span></div><div class="status">● 本地计算引擎运行中 · 18 个模块 · 跨学科计算物理实验平台</div></header>
+<div class="app">
+<nav>
+<div class="navlabel">经典力学</div>
+<button class="navbtn active" data-id="projectile">↗ 抛体运动 / 阻力</button>
+<button class="navbtn" data-id="pendulum">◉ 单摆 / 非线性动力学</button>
+<button class="navbtn" data-id="orbit">◎ 万有引力 / 轨道</button>
+<div class="navlabel">场论与波动</div>
+<button class="navbtn" data-id="electric">✳ 静电场 / 多电荷</button>
+<button class="navbtn" data-id="wave">≋ 波动 / 干涉</button>
+<button class="navbtn" data-id="maxwell">⚡ 麦克斯韦方程组 / FDTD</button>
+<button class="navbtn" data-id="quantum">Ψ 量子力学 / 薛定谔方程</button>
+<div class="navlabel">混沌与流体</div>
+<button class="navbtn" data-id="chaos">🌀 混沌动力学 / Lorenz</button>
+<button class="navbtn" data-id="fluid">🌊 流体力学 / Navier–Stokes</button>
+<button class="navbtn" data-id="continuum">🧱 连续介质 / 有限元</button>
+<div class="navlabel">热统 · 数学 · 天体</div>
+<button class="navbtn" data-id="thermo">🌡️ 热力学与统计物理</button>
+<button class="navbtn" data-id="mathphys">∫ 数学物理 / 傅里叶变换</button>
+<button class="navbtn" data-id="astro">🌌 天体物理 / N 体引力</button>
+<div class="navlabel">数值验证</div>
+<button class="navbtn" data-id="validation">✓ 步长收敛性 / 误差阶 / 能量守恒</button>
+<div class="navlabel">分析力学</div>
+<button class="navbtn" data-id="analytic">∑ 分析力学 / 辛积分器 / 双摆</button>
+<div class="navlabel">真实三维引擎</div>
+<button class="navbtn" data-id="lab3d">⬢ 三维矢量场 / 粒子系统 / 空间曲面</button>
+<div class="navlabel">相对论与几何</div>
+<button class="navbtn" data-id="spacetime">◇ 时空曲率 / 弱场示意</button>
+<button class="navbtn" data-id="gr">◆ 广义相对论求解器 / 测地线</button>
+</nav>
+<main>
+<div class="topline"><div><h1 id="title">抛体运动与空气阻力</h1><div class="desc" id="desc">二维牛顿运动方程 · 四阶 Runge–Kutta 积分 · 可调阻力模型</div></div><span class="pill" id="category">CLASSICAL MECHANICS</span></div>
+<div class="layout">
+<section>
+<div class="visuals">
+<div class="panel"><div class="panelhead"><span>2D 实验视图</span><span id="view2dLabel">位置 / 轨迹</span></div><canvas id="view2d" width="700" height="420"></canvas></div>
+<div class="panel"><div class="panelhead"><span>3D 空间视图</span><span>透视投影 · 拖动旋转 · 滚轮缩放</span></div><canvas id="view3d" width="700" height="420"></canvas></div>
+</div>
+<div class="panel chart" style="margin-top:12px"><div class="panelhead"><span id="chartTitle">位置—时间曲线</span><span>数值结果</span></div><canvas id="chart" width="1000" height="240"></canvas></div>
+</section>
+<aside class="panel">
+<div class="panelhead"><span>实验参数</span><span>INPUT</span></div>
+<div class="controls" id="controls"></div>
+</aside>
+</div>
+<div class="lower">
+<div class="panel textpanel"><h3>数学模型与控制方程</h3><div class="formula" id="formula"></div><div class="note" id="modelnote"></div><div id="extraTables"></div></div>
+<div class="panel textpanel"><h3>实时诊断 / 数值信息</h3><div class="metrics" id="metrics"></div><div class="formula" style="font-size:12px" id="diagnostic"></div><div class="log" id="log"></div></div>
+</div>
+<footer>Physics Lab 3.0 · 跨学科计算物理实验平台。全部模块均为本机实时计算，带验证表。（G=c=1 单位制，Schwarzschild 外部解）。科研用途请先验证模型、边界条件、单位制与数值收敛性。</footer>
+</main></div>
+<script>
+const $=s=>document.querySelector(s), ctx2=$('#view2d').getContext('2d'),ctx3=$('#view3d').getContext('2d'),ch=$('#chart').getContext('2d');
+let current='projectile',running=true,simTime=0,last=0,raf=0,params={},data=[],state=[],angle=0.55,pitch=0.35,camDist=1.0;
+let validationResult=null, grResult=null, geoTraj=[], particles=[], particleEnergy=[], analyticResult=null, anaLiveTrail=[], anaPartner=null, maxwellResult=null, mx=null, quantumResult=null, qm=null, chaosResult=null, fluidResult=null, femResult=null, chState=null, chPartner=null, chTrail=[], fl=null, thermoResult=null, mathResult=null, astroResult=null, th=null, gas=null, astro=null;
+const defs={
+projectile:{title:'抛体运动与空气阻力',desc:'二维牛顿运动方程 · 四阶 Runge–Kutta 积分 · 可调阻力模型',cat:'CLASSICAL MECHANICS',chart:'位置—时间曲线',formula:'m r̈ = m g − b v   （线性阻力）<br>m r̈ = m g − ½ ρ C<sub>d</sub> A |v|v   （二次阻力）',note:'采用 SI 单位。线性阻力系数 b 的单位为 kg/s；二次阻力由空气密度、阻力系数与迎风面积决定。本版默认使用线性阻力，便于检查解析极限。',controls:[['v0','初速度',5,60,25,'m/s'],['theta','发射角',10,80,50,'°'],['mass','质量',0.1,10,1,'kg'],['drag','线性阻力 b',0,1.5,0.08,'kg/s'],['g','重力加速度',1,20,9.81,'m/s²'],['dt','积分步长',0.001,0.03,0.01,'s']]},
+pendulum:{title:'单摆与非线性动力学',desc:'非线性角运动方程 · RK4 · 小角度近似对照',cat:'NONLINEAR DYNAMICS',chart:'角位移—时间曲线',formula:'θ̈ + (g/L) sinθ + γ θ̇ = 0<br>小角度：θ̈ + (g/L) θ + γ θ̇ = 0',note:'不使用 sinθ≈θ 的小角度近似进行主轨迹计算；小角度周期只作为参考值。γ 为角速度阻尼系数（s⁻¹）。',controls:[['length','摆长',0.2,5,1.2,'m'],['theta','初始角度',5,170,65,'°'],['damp','阻尼系数',0,0.8,0.025,'s⁻¹'],['g','重力加速度',1,20,9.81,'m/s²'],['dt','积分步长',0.001,0.03,0.01,'s']]},
+orbit:{title:'万有引力与轨道动力学',desc:'中心力问题 · 二体约化质量近似 · 能量与角动量监测',cat:'CELESTIAL MECHANICS',chart:'轨道半径—时间曲线',formula:'r̈ = − μ r / |r|³<br>ε = v²/2 − μ/|r|',note:'使用中心天体固定、测试粒子质量可忽略的牛顿引力模型；μ=GM。当前模型不含广义相对论修正、第三体摄动或非球形引力场。',controls:[['mu','标准引力参数 μ',1,100,30,'m³/s²'],['radius','初始半径',1,20,8,'m'],['speed','切向初速度',0.2,8,1.8,'m/s'],['dt','积分步长',0.001,0.03,0.01,'s']]},
+electric:{title:'静电场与多电荷叠加',desc:'库仑定律 · 矢量场叠加 · 等势线近似采样',cat:'ELECTROMAGNETISM',chart:'沿 x 轴电场分量 Ex',formula:'E(r) = Σᵢ k qᵢ (r−rᵢ) / |r−rᵢ|³<br>∇·E = ρ/ε₀   （静电高斯定律）',note:'采用二维平面中的三维点电荷库仑场表达式；图中电荷位置与场线为平面截面示意。为避免奇点，采样点与电荷距离设置了下限。',controls:[['q','电荷量 |q|',0.2,5,1,'μC'],['sep','电荷间距',1,8,4,'m'],['probe','探测位置 x',-8,8,0.8,'m']]},
+wave:{title:'波动、驻波与双源干涉',desc:'线性波叠加 · 相位差 · 波数与频率关系',cat:'WAVE PHYSICS',chart:'固定探针处位移—时间',formula:'y(x,t)=A sin(kx−ωt)+A sin(kx−ωt+φ)<br>v<sub>phase</sub>=ω/k= fλ',note:'采用理想均匀介质中的简谐行波叠加；不包含色散、非线性、边界吸收或有限振幅效应。',controls:[['amp','振幅',0.1,2,1,'m'],['freq','频率',0.2,3,1,'Hz'],['lambda','波长',1,10,4,'m'],['phase','相位差',0,6.28,1.57,'rad']]},
+spacetime:{title:'时空曲率与弱场几何示意',desc:'球对称质量周围的空间几何嵌入示意 · 非完整数值相对论',cat:'GENERAL RELATIVITY',chart:'径向度规因子示意',formula:'ds² = −(1−rₛ/r)c²dt² +(1−rₛ/r)⁻¹dr² + r²dΩ²<br>rₛ = 2GM/c²',note:'本模块绘制 Schwarzschild 外部解的空间切片几何示意。它不是完整 3+1 数值相对论求解器，也不代表真实时空可直接嵌入三维欧氏空间。仅显示 r>rₛ 的外部区域。',controls:[['rs','史瓦西半径 rₛ',0.5,5,2,'单位长度'],['extent','显示范围',4,12,8,'单位长度']]},
+maxwell:{title:'麦克斯韦方程组与 FDTD',desc:'Yee 交错网格 · 旋度方程时间推进 · Poynting 矢量 · ∇·B 守恒 · Courant 稳定性 · 介质界面 Fresnel 系数',cat:'ELECTROMAGNETISM / FDTD',chart:'总电磁能量—时间',formula:'∇×E = −μ ∂H/∂t，∇×H = ε ∂E/∂t<br>∇·E = ρ/ε₀，∇·B = 0<br>S = E×H，u = ½(εE² + μH²)',note:'预验算（c=1, dx=1, 归一化单位 ε₀=μ₀=1）：1D 右行高斯脉冲速度 0.5 格/步 = S·c；S=1.2 时 60 步后 max|Ez|~1e24（Courant 失稳），S=0.5 时 0.50 稳定；半无限介质板 ε=4：反射比实测 −0.343（解析 −1/3）、透射比 0.67 附近；2D TEz 交错网格 ∇·B 残差 1.1e-15（机器精度）；数值色散 f=0.05 时 v_p/c=0.997，f=0.10 时 0.987。1D 用 Ez/Hy，S_x=−Ez·Hy；2D TEz 用 Ez/Hx/Hy，S=(−Ez·Hy, Ez·Hx)。边界为 PEC（Ez=0），波会在壁面反射，属腔体物理而非吸收边界。',controls:[['mdt','时间步长 dt',0.05,0.9,0.35,''],['mfreq','2D 点源频率 f',0.02,0.15,0.05,''],['meps','介质板 ε_r',1,9,4,'']]},
+quantum:{title:'量子力学：薛定谔方程',desc:'含时薛定谔方程 · Crank–Nicolson 酉演化 · 波函数 / 概率密度 / 隧穿 / 干涉 · 不确定关系',cat:'QUANTUM MECHANICS',chart:'波包中心 <x>—时间',formula:'iħ ∂ψ/∂t = −(ħ²/2m) ∂²ψ/∂x² + V(x)ψ<br>|ψ|² 为概率密度，∫|ψ|²dx = 1<br>Δx·Δp ≥ ħ/2',note:'预验算（ħ=m=1）：CN 模守恒到 1e-6（T=2，自由波包）；谐振子 n=1 本征态能量实测 1.499（解析 1.5），|ψ|² 变化 7e-4；自由波包 σ(2)=1.405（解析 1.414）、σ(4)=2.199（解析 2.236）；隧穿（V₀=2, a=1, E=1.125, L=40, T=8）：透射 0.248（平面波解析 0.245），波包能量有展宽，透射值是包平均、不是单色平面波值。CN 无条件稳定、酉（模守恒），但 dt 过大时相位误差增大。',controls:[['qdt','时间步长 dt',0.005,0.02,0.01,''],['qk0','波包动量 k₀',0,3,2,''],['qV0','势垒高度 V₀',0.5,5,2,''],['qsig','波包宽度 σ',0.5,2,1,'']]},
+chaos:{title:'混沌动力学：Lorenz 吸引子',desc:'Lorenz 系统 · 相空间轨迹 · Lyapunov 指数 · 对初值敏感依赖',cat:'CHAOS',chart:'log₁₀ 分离量—时间（斜率 = λ）',formula:'ẋ = σ(y−x)<br>ẏ = x(ρ−z) − y<br>ż = xy − βz',note:'预验算（σ=10, ρ=28, β=8/3, RK4 dt=0.01）：分离拟合 λ≈0.81/s，文献长期值 0.905/s；有限时间估计随窗口在 0.7–0.9 间浮动，属正常现象，不是求解器错误。双摆 λ≈1.1/s 见分析力学模块。',controls:[['crho','Rayleigh 数 ρ',10,50,28,''],['cdt','步长 dt',0.002,0.02,0.01,'s']]},
+fluid:{title:'流体力学：Navier–Stokes（涡量–流函数）',desc:'不可压 NS · 涡量输运 · 泊松求解流函数 · Taylor–Green 涡解析衰减对照',cat:'FLUID MECHANICS',chart:'动能—时间（Taylor–Green 衰减）',formula:'∂ω/∂t + u·∇ω = ν∇²ω<br>∇²ψ = −ω，u = ∂ψ/∂y，v = −∂ψ/∂x<br>Taylor–Green：E(t)/E₀ = exp(−4νt)',note:'预验算：ν=0.1 时 E(1)/E₀=0.670、E(5)/E₀=0.135（解析）。求解器为周期边界涡量–流函数法，流函数由 Jacobi 迭代解泊松方程，速度由流函数求导故离散散度恒为零；半拉格朗日/中心差分平流会带来额外数值黏性，实测衰减会比解析稍快。',controls:[['fnu','运动黏度 ν',0.01,0.3,0.1,''],['fdt','步长 dt',0.01,0.1,0.05,'s']]},
+continuum:{title:'连续介质力学：有限元（1D 弹性杆）',desc:'线弹性 · 应力/应变张量（一维退化）· 线性元刚度矩阵 · Thomas 求解',cat:'CONTINUUM / FEM',chart:'位移 u(x) 与应力 σ(x)',formula:'−d/dx(EA du/dx) = f(x)，u(0)=0，u′(L)=0<br>σ = E·ε，ε = du/dx<br>线性元：Kₑ = EA/h·[[1,−1],[−1,1]]',note:'预验算（f=sin πx, EA=1, L=1）：N=8 时最大误差 4.1e-3，N=16 时 1.0e-3，N=32 时 2.6e-4，N=64 时 6.4e-5，误差按 h² 缩小（阶 2.0）。均匀体力 f=1 时线性元节点值恰好精确，属超收敛，不宜用它做收敛测试。',controls:[['femN','单元数 N',4,64,16,''],['femE','弹性模量 E',0.5,5,1,'']]},
+thermo:{title:'热力学与统计物理：热传导与分子运动',desc:'热传导方程显式差分 · 理想气体分子动力学 · Maxwell–Boltzmann 分布 · 熵与温度',cat:'THERMODYNAMICS / STATISTICAL',chart:'中心温度 / <v²>—时间',formula:'∂T/∂t = α∇²T（热传导）<br>f(v)dv ∝ v·exp(−mv²/2kT)dv（2D Maxwell–Boltzmann）<br>T = m⟨v²⟩/2k_B（2D）',note:'预验算：热模 sin πx, α=0.01 时振幅比 t=10 为 0.373、t=50 为 0.007（exp(−απ²t)）；2D MB（kT=m=1）：⟨v²⟩=2、平均速率 √(π/2)=1.253。显式热传导要求 r=αdt/dx²≤0.5，否则失稳。',controls:[['thAlpha','热扩散率 α',0.001,0.05,0.01,''],['thN','气体粒子数',20,120,60,'个']]},
+mathphys:{title:'数学物理：傅里叶变换与偏微分方程',desc:'基 2 FFT · Parseval 定理 · 高斯函数解析 Fourier 变换对照 · Gibbs 现象 · Green 函数',cat:'MATHEMATICAL PHYSICS',chart:'频谱 |F(k)|（对数标度示意）',formula:'F(k) = ∫ f(x)e^{−ikx}dx<br>高斯：ℱ{e^{−x²/2σ²}} = σ√(2π)·e^{−σ²k²/2}<br>Parseval：∫|f|²dx = (1/2π)∫|F|²dk',note:'预验算（N=256, x∈[−5,5]）：高斯 FFT 与解析变换最大相对误差 5.8e-7；Parseval 两边均为 1.772；方波 Fourier 级数 Gibbs 过冲约 8.9%（峰值约 1.179）。',controls:[['msig','高斯宽度 σ',0.5,2,1,''],['mfreq','正弦分量频率',0.5,3,1,'Hz']]},
+astro:{title:'天体物理：N 体引力与引力透镜',desc:'Plummer 球 · Leapfrog 辛积分 · 位力定理 · 旋转曲线 · 光线偏折 α=4GM/c²b',cat:'ASTROPHYSICS',chart:'总能量—时间（Leapfrog 漂移）',formula:'Fᵢ = −Σⱼ GMm(rᵢ−rⱼ)/(|rᵢ−rⱼ|²+ε²)^{3/2}<br>位力：2T + U = 0（平衡态）<br>α = 4GM/(c²b)（弱场光线偏折）',note:'预验算（G=c=M=1）：光线偏折 b=5 时 0.80 rad、b=10 时 0.40 rad、b=20 时 0.20 rad；弱场近似要求 b≫rₛ=2，b=5 时已是近似边界。Plummer 旋转曲线 v_circ²=GM(r)/r，M(r)=M·r³/(r²+a²)^{3/2}。',controls:[['aN','粒子数 N',20,100,48,'个'],['adt2','步长 dt',0.002,0.02,0.01,'s']]},
+validation:{title:'数值计算验证：步长收敛性 / 误差阶 / 能量守恒',desc:'同一初值用 h, h/2, h/4, h/8 积分，与 h/32 参考解比较；Richardson 外推估计误差阶 p；无阻尼系统监测能量漂移',cat:'NUMERICAL VERIFICATION',chart:'log–log 误差—步长图（斜率 = 误差阶）',formula:'误差 E(h)=‖x<sub>h</sub>(T)−x<sub>ref</sub>(T)‖<br>p = log₂(E(h)/E(h/2))，RK4 理论 p=4，Euler p=1，中点法 p=2<br>能量漂移 δE = max|E(t)−E₀|/|E₀|',note:'参考解取 h/32 的同方法积分，不是解析解。阻尼/阻力系统能量不守恒，只做收敛性，不判能量漂移。单摆取 γ=0、轨道取圆轨道初速 √(μ/r)，能量才有意义。已在 Python 中预验算：单摆 RK4，T=5s，dt=0.04→0.005 误差 3.2e-5→8.8e-9，阶 ≈3.9–4.0，能量漂移 2.8e-6→1.7e-10。',controls:[['vdt','基准步长 h',0.005,0.08,0.01,'s'],['vT','积分时长 T',1,10,5,'s']]},
+analytic:{title:'分析力学：拉格朗日 / 哈密顿 / 辛积分器',desc:'牛顿 → Lagrange → Hamilton → 辛几何：同一系统用 Euler / 辛 Euler / Verlet / RK4 / 隐式中点积分，比较长期能量行为；双摆做混沌与 Lyapunov 指数',cat:'ANALYTICAL MECHANICS',chart:'能量漂移—时间（各积分器对照，log 标度）',formula:'L = T − V，d/dt(∂L/∂q̇) − ∂L/∂q = 0<br>H(q,p) = p²/2I + V(q)，q̇ = ∂H/∂p，ṗ = −∂H/∂q<br>辛积分器保辛形式 ω = Σ dq∧dp：能量误差有界、无长期漂移',note:'预验算（dt=0.05, T=50）：谐振子 Euler 能量漂移 11 倍、辛 Euler 2.6%、Verlet 6.3e-4、RK4 2.2e-7；T=500 时 RK4 漂移随 T 线性增至 2.2e-6，Verlet 仍 6.3e-4 不增长——RK4 短期更准，辛积分器长期不漂移。双摆 H 不可分，辛 Euler/Verlet 不适用，改用隐式中点（辛、二阶，dt=0.01 时能量漂移 1.9%，按 dt² 缩小）。双摆 Lyapunov 指数 λ≈1.1/s（初值差 1e-6，5s 后分离 ~1e-5 量级，10s 后 ~1e-2 量级；Python ω-相空间拟合 1.07/s，JS 正则相空间拟合 1.12/s）。',controls:[['adt','积分步长 dt',0.005,0.05,0.01,'s'],['aT','对照时长 T',10,100,50,'s']]},
+lab3d:{title:'真正的三维物理引擎',desc:'Vec3 矢量运算 · 透视投影相机 · 粒子系统（速度 Verlet）· 3D 矢量场箭头 · 参数曲面三角网格（深度排序+法向着色）',cat:'3D PHYSICS ENGINE',chart:'粒子系统总能量—时间',formula:'a = −μ r/|r|³（中心引力）/ qE/m（偶极子）/ −k r（谐振子）<br>曲面：z = x²+y²（抛物面）· z=2√(rₛ(r−rₛ))（Flamm 嵌入面）· z=sin(x)cos(y)（波面）',note:'3D 视图不是 2D 投影示意：每个点都经过旋转矩阵 + 透视除法（x′=f·X/Z），曲面按三角形平均深度排序绘制，法向决定明暗。粒子用速度 Verlet 积分，dt 过大时中心引力会发散，属数值不稳定而非物理。',controls:[['pcount','粒子数',20,300,120,'个'],['pdt','粒子步长',0.001,0.02,0.005,'s']]},
+gr:{title:'广义相对论求解器',desc:'数值度规微分 → Christoffel → Riemann → Ricci → Kretschmann → 测地线 RK4 积分（Schwarzschild，G=c=1）',cat:'GENERAL RELATIVITY SOLVER',chart:'测地线 r(τ) 与守恒量漂移',formula:'Γ<sup>μ</sup><sub>νρ</sub>=½g<sup>μσ</sup>(∂<sub>ν</sub>g<sub>σρ</sub>+∂<sub>ρ</sub>g<sub>σν</sub>−∂<sub>σ</sub>g<sub>νρ</sub>)<br>R<sup>ρ</sup><sub>σμν</sub>=∂<sub>μ</sub>Γ<sup>ρ</sup><sub>νσ</sub>−∂<sub>ν</sub>Γ<sup>ρ</sup><sub>μσ</sub>+Γ<sup>ρ</sup><sub>μλ</sub>Γ<sup>λ</sup><sub>νσ</sub>−Γ<sup>ρ</sup><sub>νλ</sub>Γ<sup>λ</sup><sub>μσ</sub><br>R<sub>σν</sub>=R<sup>ρ</sup><sub>σρν</sub>，测地线：ẍ<sup>μ</sup>+Γ<sup>μ</sup><sub>νρ</sub>ẋ<sup>ν</sup>ẋ<sup>ρ</sup>=0',note:'预验算（r=6, rₛ=2, θ=π/2）：数值 Christoffel 与解析式最大差 1.5e-10；Ricci 最大分量 6.7e-9（真空应为 0）；Kretschmann 数值与 12rₛ²/r⁶ 相对误差 3.1e-9。测地线用解析 Γ 积分，数值 Γ 只用于张量表对照。默认 r₀=10、L=0.92L_circ 为束缚偏心轨道（r 约 5.9–10，E/L 漂移 ~1e-15）；r₀=6 是 ISCO，L 稍小即坠入视界，属物理结果而非数值发散。',controls:[['grs','史瓦西半径 rₛ',0.5,4,2,''],['grr','张量求值半径 r',3,12,6,''],['gr0','测地线初始半径 r₀',4,12,10,''],['gfac','角动量因子 L/L_circ',0.7,1.05,0.92,''],['gdt','测地线步长 dτ',0.005,0.05,0.02,'']]}
+};
+let sel={vSys:'pendulum',vMethod:'rk4',field:'central',surf:'flamm',showField:true,showSurf:true,showParticles:true,anaSys:'pendulum',anaMethod:'verlet',mxDim:'2d',mxSrc:'pulse',mxSlab:true,qSys:'free',flSys:'taylor',thSys:'heat',astroInit:false};
+function makeControls(){let d=defs[current];$('#title').textContent=d.title;$('#desc').textContent=d.desc;$('#category').textContent=d.cat;$('#chartTitle').textContent=d.chart;$('#formula').innerHTML=d.formula;$('#modelnote').textContent=d.note;$('#extraTables').innerHTML='';let html='';
+d.controls.forEach(c=>{params[c[0]]=c[4];html+=`<div class="control"><div class="controltop"><label>${c[1]}</label><output id="o_${c[0]}">${c[4]} ${c[5]}</output></div><input type="range" id="p_${c[0]}" min="${c[2]}" max="${c[3]}" step="0.001" value="${c[4]}"></div>`});
+if(current==='validation'){html+=`<div class="control"><div class="controltop"><label>测试系统</label></div><select id="s_vSys"><option value="pendulum">单摆（无阻尼，能量守恒）</option><option value="orbit">圆轨道（能量+角动量守恒）</option><option value="projectile">抛体（有阻力，只测收敛）</option></select></div><div class="control"><div class="controltop"><label>积分器</label></div><select id="s_vMethod"><option value="rk4">RK4（理论阶 4）</option><option value="rk2">中点法 RK2（理论阶 2）</option><option value="euler">Euler（理论阶 1）</option></select></div>`}
+if(current==='lab3d'){html+=`<div class="control"><div class="controltop"><label>矢量场 / 粒子受力</label></div><select id="s_field"><option value="central">中心引力 −μr/|r|³</option><option value="dipole">电偶极子场 qE/m</option><option value="harmonic">谐振子 −k r</option><option value="vortex">涡旋 + 中心引力</option></select></div><div class="control"><div class="controltop"><label>空间曲面</label></div><select id="s_surf"><option value="flamm">Flamm 嵌入面 z=2√(rₛ(r−rₛ))</option><option value="paraboloid">抛物面 z=x²+y²</option><option value="wave">波面 z=sin x·cos y</option><option value="saddle">鞍面 z=x²−y²</option><option value="none">不显示曲面</option></select></div>`}
+if(current==='maxwell'){html+=`<div class="control"><div class="controltop"><label>维度 / 模式</label></div><select id="s_mxDim"><option value="2d">2D TEz 点源（Ez 热图）</option><option value="1d">1D 平面波（右行高斯脉冲）</option></select></div><div class="control"><div class="controltop"><label>介质板</label></div><select id="s_mxSlab"><option value="on">开：1D x=120–159 / 2D x=48–60，ε=ε_r</option><option value="off">关：全空间 ε=1</option></select></div>`}
+if(current==='thermo'){html+=`<div class="control"><div class="controltop"><label>子系统</label></div><select id="s_thSys"><option value="heat">热传导（1D 杆，sin 模）</option><option value="gas">分子运动（2D 理想气体硬盘）</option></select></div>`}
+if(current==='quantum'){html+=`<div class="control"><div class="controltop"><label>系统 / 势场</label></div><select id="s_qSys"><option value="free">自由波包扩散</option><option value="harmonic">谐振子相干态</option><option value="eigen">谐振子 n=1 本征态</option><option value="barrier">隧穿：矩形势垒</option><option value="double">双高斯干涉（双缝类比）</option></select></div>`}
+if(current==='analytic'){html+=`<div class="control"><div class="controltop"><label>系统（Hamiltonian）</label></div><select id="s_anaSys"><option value="pendulum">单摆（可分，θ₀=1 rad）</option><option value="osc">谐振子（可分，q₀=1）</option><option value="double">双摆（不可分，混沌，θ₁=2.0, θ₂=1.2）</option></select></div><div class="control"><div class="controltop"><label>实时积分器（2D 动画用）</label></div><select id="s_anaMethod"><option value="verlet">Verlet（辛，二阶，仅可分）</option><option value="symp_euler">辛 Euler（辛，一阶，仅可分）</option><option value="rk4">RK4（非辛，四阶）</option><option value="imp_mid">隐式中点（辛，二阶，通用）</option><option value="euler">Euler（非辛，一阶）</option></select></div>`}
+if(current==='gr'){html+=`<div class="note" style="margin-bottom:10px">度规：Schwarzschild（G=c=1，M=rₛ/2），θ=π/2 赤道面。张量在 r 处求值；测地线从 r₀ 出发，uʳ=0，L 由因子缩放。</div>`}
+html+=`<div class="actions"><button class="btn primary" id="play">❚❚ 暂停</button><button class="btn" id="step">单步 +0.01s</button><button class="btn" id="reset">↺ 重置</button><button class="btn" id="runSpecial">${current==='validation'?'▶ 运行收敛性测试':current==='thermo'?'▶ 运行热统验证（热模/MB 分布）':current==='mathphys'?'▶ 运行数学物理验证（FFT/Parseval/Gibbs）':current==='astro'?'▶ 运行天体验证（能量/位力/旋转曲线/透镜）':current==='chaos'?'▶ 运行混沌验证（Lyapunov）':current==='fluid'?'▶ 运行流体验证（Taylor–Green 衰减）':current==='continuum'?'▶ 运行 FEM 收敛性':current==='quantum'?'▶ 运行量子验证（模/本征能量/扩散/隧穿）':current==='maxwell'?'▶ 运行 FDTD 验证（速度/Fresnel/∇·B/Courant）':current==='analytic'?'▶ 运行积分器对照':current==='gr'?'▶ 计算张量并积分测地线':current==='lab3d'?'▶ 重新撒粒子':'重新计算'}</button></div><div class="metrics" id="sideMetrics"></div>`;
+$('#controls').innerHTML=html;
+d.controls.forEach(c=>{$('#p_'+c[0]).addEventListener('input',e=>{params[c[0]]=+e.target.value;$('#o_'+c[0]).textContent=(+e.target.value).toFixed(3)+' '+c[5];if(['electric','wave','spacetime'].includes(current))drawAll()})});
+if($('#s_vSys')){$('#s_vSys').value=sel.vSys;$('#s_vSys').onchange=e=>{sel.vSys=e.target.value;runValidation()}}
+if($('#s_vMethod')){$('#s_vMethod').value=sel.vMethod;$('#s_vMethod').onchange=e=>{sel.vMethod=e.target.value;runValidation()}}
+if($('#s_field')){$('#s_field').value=sel.field;$('#s_field').onchange=e=>{sel.field=e.target.value;initParticles();drawAll()}}
+if($('#s_surf')){$('#s_surf').value=sel.surf;$('#s_surf').onchange=e=>{sel.surf=e.target.value;drawAll()}}
+if($('#s_mxDim')){$('#s_mxDim').value=sel.mxDim;$('#s_mxDim').onchange=e=>{sel.mxDim=e.target.value;initMaxwell();drawAll()}}
+if($('#s_mxSlab')){$('#s_mxSlab').value=sel.mxSlab?'on':'off';$('#s_mxSlab').onchange=e=>{sel.mxSlab=e.target.value==='on';initMaxwell();drawAll()}}
+if($('#s_thSys')){$('#s_thSys').value=sel.thSys;$('#s_thSys').onchange=e=>{sel.thSys=e.target.value;initThermo();drawAll()}}
+if($('#s_qSys')){$('#s_qSys').value=sel.qSys;$('#s_qSys').onchange=e=>{sel.qSys=e.target.value;initQuantum();drawAll()}}
+if($('#s_anaSys')){$('#s_anaSys').value=sel.anaSys;$('#s_anaSys').onchange=e=>{sel.anaSys=e.target.value;state=initial();anaLiveTrail=[];anaPartner=null;runAnalytical()}}
+if($('#s_anaMethod')){$('#s_anaMethod').value=sel.anaMethod;$('#s_anaMethod').onchange=e=>{sel.anaMethod=e.target.value;drawAll()}}
+$('#play').onclick=()=>{running=!running;$('#play').textContent=running?'❚❚ 暂停':'▶ 继续';if(running)last=0};
+$('#step').onclick=()=>{running=false;$('#play').textContent='▶ 继续';advance(.01);drawAll()};
+$('#reset').onclick=()=>{simTime=0;data=[];state=initial();if(current==='lab3d'){initParticles()}if(current==='gr'){runGR()}if(current==='validation'){runValidation()}if(current==='analytic'){anaLiveTrail=[];runAnalytical()}if(current==='maxwell'){initMaxwell()}if(current==='quantum'){initQuantum()}if(current==='thermo'){initThermo()}if(current==='mathphys'){runMathCheck()}if(current==='astro'){initAstro()}if(current==='chaos'){initChaos()}if(current==='fluid'){initFluid()}if(current==='continuum'){runFemCheck()}running=true;$('#play').textContent='❚❚ 暂停';drawAll()};
+$('#runSpecial').onclick=()=>{if(current==='validation')runValidation();else if(current==='thermo')runThermoCheck();else if(current==='mathphys')runMathCheck();else if(current==='astro')runAstroCheck();else if(current==='chaos')runChaosCheck();else if(current==='fluid')runFluidCheck();else if(current==='continuum')runFemCheck();else if(current==='quantum')runQuantumCheck();else if(current==='maxwell')runMaxwellCheck();else if(current==='analytic')runAnalytical();else if(current==='gr')runGR();else if(current==='lab3d'){initParticles();drawAll()}else{simTime=0;data=[];state=initial();drawAll()}};
+simTime=0;data=[];state=initial();
+if(current==='lab3d')initParticles();
+if(current==='validation')runValidation();
+if(current==='gr')runGR();
+if(current==='analytic')runAnalytical();
+if(current==='maxwell')initMaxwell();
+if(current==='quantum')initQuantum();
+if(current==='thermo')initThermo();
+if(current==='mathphys')runMathCheck();
+if(current==='astro')initAstro();
+if(current==='chaos')initChaos();
+if(current==='fluid')initFluid();
+if(current==='continuum')runFemCheck();
+drawAll()}
+function initial(){switch(current){case'projectile':return [0,0,params.v0*Math.cos(params.theta*Math.PI/180),params.v0*Math.sin(params.theta*Math.PI/180)];case'pendulum':return [params.theta*Math.PI/180,0];case'orbit':return [params.radius,0,0,params.speed];case'analytic':return sel.anaSys==='double'?[2.0,1.2,0,0]:[1,0];case'maxwell':return [];case'quantum':return [];case'thermo':return [];case'mathphys':return [];case'astro':return [];case'chaos':return [1,1,1];case'fluid':return [];case'continuum':return [];default:return []}}
+function deriv(s){if(current==='projectile'){let [x,y,vx,vy]=s,b=params.drag/params.mass;return [vx,vy,-b*vx,-params.g-b*vy]}if(current==='pendulum'){return [s[1],-params.g/params.length*Math.sin(s[0])-params.damp*s[1]]}if(current==='orbit'){let [x,y,vx,vy]=s,r=Math.max(1e-6,Math.hypot(x,y)),a=-params.mu/(r*r*r);return [vx,vy,a*x,a*y]}return []}
+function rk4(s,h){let add=(a,b,k)=>a.map((v,i)=>v+b[i]*k),k1=deriv(s),k2=deriv(add(s,k1,h/2)),k3=deriv(add(s,k2,h/2)),k4=deriv(add(s,k3,h));return s.map((v,i)=>v+h*(k1[i]+2*k2[i]+2*k3[i]+k4[i])/6)}
+// ---- 通用积分器（验证模块用，与主仿真解耦） ----
+function sysDeriv(sys,s){if(sys==='pendulum')return [s[1],-9.81/1.2*Math.sin(s[0])];if(sys==='orbit'){let r=Math.max(1e-6,Math.hypot(s[0],s[1])),a=-30/(r*r*r);return [s[2],s[3],a*s[0],a*s[1]]}let b=0.08;return [s[2],s[3],-b*s[2],-9.81-b*s[3]]}
+function sysInit(sys){if(sys==='pendulum')return [65*Math.PI/180,0];if(sys==='orbit'){let r=8,v=Math.sqrt(30/r);return [r,0,0,v]}return [0,0,25*Math.cos(50*Math.PI/180),25*Math.sin(50*Math.PI/180)]}
+function sysEnergy(sys,s){if(sys==='pendulum')return 0.5*1.2*1.2*s[1]*s[1]+9.81*1.2*(1-Math.cos(s[0]));if(sys==='orbit'){let r=Math.hypot(s[0],s[1]),v=Math.hypot(s[2],s[3]);return 0.5*v*v-30/r}return null}
+function stepSys(sys,s,h,method){let f=x=>sysDeriv(sys,x),add=(a,b,k)=>a.map((v,i)=>v+b[i]*k);
+if(method==='euler'){let k=f(s);return s.map((v,i)=>v+h*k[i])}
+if(method==='rk2'){let k1=f(s),k2=f(add(s,k1,h/2));return s.map((v,i)=>v+h*k2[i])}
+let k1=f(s),k2=f(add(s,k1,h/2)),k3=f(add(s,k2,h/2)),k4=f(add(s,k3,h));return s.map((v,i)=>v+h*(k1[i]+2*k2[i]+2*k3[i]+k4[i])/6)}
+function simulateSys(sys,h,T,method){let s=sysInit(sys),t=0,E0=sysEnergy(sys,s),maxDE=0,n=Math.ceil(T/h);h=T/n;for(let i=0;i<n;i++){s=stepSys(sys,s,h,method);t+=h;if(E0!==null&&Math.abs(E0)>1e-12){let E=sysEnergy(sys,s);maxDE=Math.max(maxDE,Math.abs(E-E0)/Math.abs(E0))}}return {s,maxDE}}
+function runValidation(){let h=params.vdt||0.04,T=params.vT||5,method=sel.vMethod,sys=sel.vSys,href=h/32,ref=simulateSys(sys,href,T,'rk4'),rows=[];
+for(let k=0;k<4;k++){let hh=h/Math.pow(2,k),r=simulateSys(sys,hh,T,method),err=Math.hypot(...r.s.map((v,i)=>v-ref.s[i]));rows.push({h:hh,err,maxDE:r.maxDE,order:null})}
+for(let i=1;i<rows.length;i++)rows[i].order=rows[i-1].err>0&&rows[i].err>0?Math.log2(rows[i-1].err/rows[i].err):null;
+let theory={rk4:4,rk2:2,euler:1}[method];
+validationResult={sys,method,h,T,rows,theory,refErr:simulateSys(sys,href/2,T,method)};
+data=rows.map(r=>[Math.log10(r.h),Math.log10(Math.max(r.err,1e-16))]);simTime=T;drawAll()}
+// ---- 分析力学：Hamiltonian + 辛积分器 ----
+function hamV(sys,q){return sys==='osc'?0.5*q*q:9.81*(1-Math.cos(q))}
+function hamdV(sys,q){return sys==='osc'?q:9.81*Math.sin(q)}
+function hamHdp(s){let th1=s[0],th2=s[1],p1=s[2],p2=s[3],c=Math.cos(th1-th2),det=2-c*c;return 0.5/det*(p1*p1-2*c*p1*p2+2*p2*p2)-9.81*(2*Math.cos(th1)+Math.cos(th2))}
+function hamEnergy(sys,s){if(sys==='double')return hamHdp(s);return 0.5*s[1]*s[1]+hamV(sys,s[0])}
+function hamFlow(sys,s){
+  if(sys==='double'){let h=1e-6,g=[0,0,0,0];for(let i=0;i<4;i++){let sp=s.slice(),sm=s.slice();sp[i]+=h;sm[i]-=h;g[i]=(hamHdp(sp)-hamHdp(sm))/(2*h)}return [g[2],g[3],-g[0],-g[1]]}
+  return [s[1],-hamdV(sys,s[0])]}
+function stepHam(sys,s,dt,method){
+  if(method==='euler'){let f=hamFlow(sys,s);return s.map((v,i)=>v+dt*f[i])}
+  if(method==='symp_euler'){if(sys==='double')return stepHam(sys,s,dt,'imp_mid');let q=s[0],p=s[1]-dt*hamdV(sys,s[0]);return [q+dt*p,p]}
+  if(method==='verlet'){if(sys==='double')return stepHam(sys,s,dt,'imp_mid');let q=s[0],p=s[1],a=-hamdV(sys,q);let q2=q+dt*p+0.5*dt*dt*a,a2=-hamdV(sys,q2);return [q2,p+dt*0.5*(a+a2)]}
+  if(method==='rk4'){let f=x=>hamFlow(sys,x),add=(a,b,k)=>a.map((v,i)=>v+b[i]*k),k1=f(s),k2=f(add(s,k1,dt/2)),k3=f(add(s,k2,dt/2)),k4=f(add(s,k3,dt));return s.map((v,i)=>v+dt*(k1[i]+2*k2[i]+2*k3[i]+k4[i])/6)}
+  // implicit midpoint, symplectic, 2nd order, works for non-separable H
+  let f0=hamFlow(sys,s),x=s.map((v,i)=>v+dt*f0[i]);
+  for(let it=0;it<10;it++){let mid=s.map((v,i)=>(v+x[i])/2),f=hamFlow(sys,mid),xn=s.map((v,i)=>v+dt*f[i]);let err=Math.max(...xn.map((v,i)=>Math.abs(v-x[i])));x=xn;if(err<1e-12)break}
+  return x}
+function runAnalytical(){
+  let sys=sel.anaSys,dt=params.adt||0.01,T=params.aT||50;
+  let methods=sys==='double'?['euler','rk4','imp_mid']:['euler','symp_euler','verlet','rk4','imp_mid'];
+  let labels={euler:'Euler（非辛，1阶）',symp_euler:'辛 Euler（辛，1阶）',verlet:'Verlet（辛，2阶）',rk4:'RK4（非辛，4阶）',imp_mid:'隐式中点（辛，2阶）'};
+  let symp={euler:false,symp_euler:true,verlet:true,rk4:false,imp_mid:true};
+  let rows=[],series={};
+  for(let m of methods){
+    let s=sys==='double'?[2.0,1.2,0,0]:[1,0],E0=hamEnergy(sys,s),maxd=0,ser=[],n=Math.round(T/dt);
+    for(let i=0;i<n;i++){s=stepHam(sys,s,dt,m);let E=hamEnergy(sys,s),d=Math.abs(E-E0)/Math.abs(E0);maxd=Math.max(maxd,d);if(i%Math.max(1,Math.floor(n/200))===0)ser.push([i*dt,d])}
+    rows.push({method:m,label:labels[m],symplectic:symp[m],maxd,finald:Math.abs(hamEnergy(sys,s)-E0)/Math.abs(E0)});
+    series[m]=ser;
+  }
+  let lyap=null;
+  if(sys==='double'){
+    let a=[2.0,1.2,0,0],b=[2.0,1.2+1e-6,0,0],pts=[],ldt=0.01;
+    for(let i=0;i<1500;i++){a=stepHam('double',a,ldt,'rk4');b=stepHam('double',b,ldt,'rk4');let d=Math.hypot(...a.map((v,j)=>v-b[j]));pts.push([i*ldt,d])}
+    let xs=[],ts=[];for(let [tt,d] of pts)if(d>1e-4&&d<0.1){ts.push(tt);xs.push(Math.log(d))}
+    if(ts.length>5){let n=ts.length,mx=ts.reduce((x,y)=>x+y,0)/n,my=xs.reduce((x,y)=>x+y,0)/n,lam=xs.reduce((acc,_,i)=>acc+(ts[i]-mx)*(xs[i]-my),0)/ts.reduce((acc,tt)=>acc+(tt-mx)*(tt-mx),0);lyap={lambda:lam,d5:pts[500][1],d10:pts[1000][1],pts}}
+  }
+  analyticResult={sys,dt,T,rows,series,lyap};data=series['rk4']||[];simTime=T;drawAll()}
+// ---- 麦克斯韦 / FDTD：Yee 交错网格 ----
+function initMaxwell(){
+  let dt=params.mdt||0.35, eps=params.meps||4;
+  if(sel.mxDim==='1d'){
+    let N=200; mx={dim:'1d',N,dt,step:0,Ez:new Float64Array(N),Hy:new Float64Array(N-1),eps:new Float64Array(N).fill(1),energy:[]};
+    if(sel.mxSlab) for(let i=120;i<160;i++) mx.eps[i]=eps;
+    for(let i=0;i<N;i++) mx.Ez[i]=Math.exp(-Math.pow((i-60)/6,2));
+    for(let i=0;i<N-1;i++) mx.Hy[i]=-0.5*(mx.Ez[i]+mx.Ez[i+1]);
+  } else {
+    let Nx=64,Ny=64; mx={dim:'2d',Nx,Ny,dt,step:0,Ez:new Float64Array(Nx*Ny),Hx:new Float64Array(Nx*Ny),Hy:new Float64Array(Nx*Ny),eps:new Float64Array(Nx*Ny).fill(1),energy:[]};
+    if(sel.mxSlab) for(let i=48;i<61;i++) for(let j=0;j<Ny;j++) mx.eps[i*Ny+j]=eps;
+  }
+  simTime=0; data=[];
+}
+function mxEnergy(){
+  if(!mx) return 0;
+  let E=0;
+  if(mx.dim==='1d'){for(let i=0;i<mx.N;i++)E+=mx.eps[i]*mx.Ez[i]*mx.Ez[i];for(let i=0;i<mx.N-1;i++)E+=mx.Hy[i]*mx.Hy[i]}
+  else{for(let i=0;i<mx.Nx*mx.Ny;i++)E+=mx.eps[i]*mx.Ez[i]*mx.Ez[i]+mx.Hx[i]*mx.Hx[i]+mx.Hy[i]*mx.Hy[i]}
+  return 0.5*E;
+}
+function mxStep(){
+  if(!mx) return; let dt=mx.dt;
+  if(mx.dim==='1d'){
+    for(let i=0;i<mx.N-1;i++) mx.Hy[i]+=dt*(mx.Ez[i+1]-mx.Ez[i]);
+    for(let i=1;i<mx.N-1;i++) mx.Ez[i]+=dt/mx.eps[i]*(mx.Hy[i]-mx.Hy[i-1]);
+    mx.Ez[0]=0; mx.Ez[mx.N-1]=0;
+  } else {
+    let Nx=mx.Nx,Ny=mx.Ny;
+    for(let i=0;i<Nx;i++) for(let j=0;j<Ny-1;j++) mx.Hx[i*Ny+j]-=dt*(mx.Ez[i*Ny+j+1]-mx.Ez[i*Ny+j]);
+    for(let i=0;i<Nx-1;i++) for(let j=0;j<Ny;j++) mx.Hy[i*Ny+j]+=dt*(mx.Ez[(i+1)*Ny+j]-mx.Ez[i*Ny+j]);
+    for(let i=1;i<Nx-1;i++) for(let j=1;j<Ny-1;j++){let k=i*Ny+j;mx.Ez[k]+=dt/mx.eps[k]*((mx.Hy[k]-mx.Hy[(i-1)*Ny+j])-(mx.Hx[k]-mx.Hx[i*Ny+j-1]))}
+    let cx=32,cy=32,f=params.mfreq||0.05; mx.Ez[cx*Ny+cy]+=Math.sin(2*Math.PI*f*mx.step*dt)*0.35;
+    for(let i=0;i<Nx;i++){mx.Ez[i*Ny]=0;mx.Ez[i*Ny+Ny-1]=0}
+    for(let j=0;j<Ny;j++){mx.Ez[j]=0;mx.Ez[(Nx-1)*Ny+j]=0}
+  }
+  mx.step++; simTime+=dt; mx.energy.push([simTime,mxEnergy()]); if(mx.energy.length>600)mx.energy.shift();
+}
+function mxDivB(){
+  if(!mx||mx.dim!=='2d') return 0; let Nx=mx.Nx,Ny=mx.Ny,maxd=0,maxH=1e-12;
+  for(let i=0;i<Nx-1;i++) for(let j=0;j<Ny-1;j++){
+    let d=(mx.Hx[(i+1)*Ny+j]-mx.Hx[i*Ny+j])+(mx.Hy[i*Ny+j+1]-mx.Hy[i*Ny+j]);
+    maxd=Math.max(maxd,Math.abs(d)); maxH=Math.max(maxH,Math.abs(mx.Hx[i*Ny+j]),Math.abs(mx.Hy[i*Ny+j]));
+  }
+  return maxd/maxH;
+}
+function runMaxwellCheck(){
+  // 1D: pulse speed + Fresnel (semi-infinite slab) + Courant blow-up, all with dt=0.5
+  function run1d(epsSlab,steps,dt){
+    let N=320,Ez=new Float64Array(N),Hy=new Float64Array(N-1),eps=new Float64Array(N).fill(1);
+    if(epsSlab) for(let i=150;i<N;i++) eps[i]=epsSlab;
+    for(let i=0;i<N;i++) Ez[i]=Math.exp(-Math.pow((i-80)/6,2));
+    for(let i=0;i<N-1;i++) Hy[i]=-0.5*(Ez[i]+Ez[i+1]);
+    let peak=(lo,hi)=>{let j=lo;for(let i=lo;i<hi;i++)if(Math.abs(Ez[i])>Math.abs(Ez[j]))j=i;return [Ez[j],j]};
+    let centroid=(lo,hi)=>{let s=0,w=0;for(let i=lo;i<hi;i++){let a=Math.abs(Ez[i]);s+=i*a;w+=a}return s/Math.max(w,1e-12)};
+    let out={};
+    for(let n=0;n<steps;n++){
+      for(let i=0;i<N-1;i++) Hy[i]+=dt*(Ez[i+1]-Ez[i]);
+      for(let i=1;i<N-1;i++) Ez[i]+=dt/eps[i]*(Hy[i]-Hy[i-1]);
+      Ez[0]=0;Ez[N-1]=0;
+      if(n===40){out.inc=peak(95,125);out.c40=centroid(85,120)}
+      if(n===100){out.p100=peak(120,160);out.c100=centroid(115,150)}
+      if(n===220&&epsSlab)out.refl=peak(85,140);
+      if(n===260&&epsSlab)out.trans=peak(170,220);
+    }
+    out.maxEz=Math.max(...Array.from(Ez,Math.abs)); return out;
+  }
+  let a=run1d(null,120,0.5), b=run1d(4,300,0.5), c=run1d(null,60,1.2);
+  let speed=((a.c100-a.c40)/60)/0.5; // centroid displacement per step / S = v/c (sub-cell, avoids peak-picking quantisation)
+  let fresR=b.refl[0]/b.inc[0], fresT=b.trans[0]/b.inc[0];
+  // 2D div B, 80 steps dt=0.35
+  let Nx=64,Ny=64,Ez=new Float64Array(Nx*Ny),Hx=new Float64Array(Nx*Ny),Hy=new Float64Array(Nx*Ny),dt=0.35;
+  for(let n=0;n<80;n++){
+    for(let i=0;i<Nx;i++)for(let j=0;j<Ny-1;j++)Hx[i*Ny+j]-=dt*(Ez[i*Ny+j+1]-Ez[i*Ny+j]);
+    for(let i=0;i<Nx-1;i++)for(let j=0;j<Ny;j++)Hy[i*Ny+j]+=dt*(Ez[(i+1)*Ny+j]-Ez[i*Ny+j]);
+    for(let i=1;i<Nx-1;i++)for(let j=1;j<Ny-1;j++){let k=i*Ny+j;Ez[k]+=dt*((Hy[k]-Hy[(i-1)*Ny+j])-(Hx[k]-Hx[i*Ny+j-1]))}
+    Ez[32*Ny+32]+=Math.sin(2*Math.PI*0.05*n)*0.5;
+    for(let i=0;i<Nx;i++){Ez[i*Ny]=0;Ez[i*Ny+Ny-1]=0}
+    for(let j=0;j<Ny;j++){Ez[j]=0;Ez[(Nx-1)*Ny+j]=0}
+  }
+  let maxd=0,maxH=1e-12; for(let i=0;i<Nx-1;i++)for(let j=0;j<Ny-1;j++){maxd=Math.max(maxd,Math.abs((Hx[(i+1)*Ny+j]-Hx[i*Ny+j])+(Hy[i*Ny+j+1]-Hy[i*Ny+j])));maxH=Math.max(maxH,Math.abs(Hx[i*Ny+j]),Math.abs(Hy[i*Ny+j]))}
+  let w1=2*Math.PI*0.05, vp1=(w1/(2*Math.asin(Math.sin(w1*0.5/2)/0.5))), w2=2*Math.PI*0.10, vp2=(w2/(2*Math.asin(Math.sin(w2*0.5/2)/0.5)));
+  maxwellResult={speed, speedErr:Math.abs(speed-1), fresR, fresT, fresRana:-1/3, fresTana:2/3, divB:maxd/maxH, courantBlow:c.maxEz, courantStable:a.maxEz, vp1, vp2};
+  drawAll();
+}
+// ---- 量子力学：Crank–Nicolson 求解含时薛定谔方程 ----
+function cdiv(ar,ai,br,bi){let d=br*br+bi*bi;return [(ar*br+ai*bi)/d,(ai*br-ar*bi)/d]}
+function cnMake(L,N,dt,V,re0,im0){
+  let dx=L/(N-1),x=new Float64Array(N);for(let i=0;i<N;i++)x[i]=-L/2+i*dx;
+  let q={L,N,dx,dt,x,V,re:re0.slice(),im:im0.slice(),step:0};
+  let inv=1/(dx*dx),offI=-dt/(4*dx*dx); // A off diag = i*offI, B off = -i*offI
+  q.cRe=new Float64Array(N-1);q.cIm=new Float64Array(N-1);q.dRe=new Float64Array(N);q.dIm=new Float64Array(N);
+  // A diag = 1 + i*dt/2*(inv+V)
+  let dR=1,dI=dt/2*(inv+V[0]);q.dRe[0]=dR;q.dIm[0]=dI;let cr=cdiv(0,offI,dR,dI);q.cRe[0]=cr[0];q.cIm[0]=cr[1];
+  for(let i=1;i<N-1;i++){let dr=1,di=dt/2*(inv+V[i]);
+    // denom = diag - off*cPrev ; off=(0,offI), cPrev=(cRe,cIm): off*c = (-offI*cIm, offI*cRe)
+    let denR=dr-(-offI*q.cIm[i-1]),denI=di-(offI*q.cRe[i-1]);q.dRe[i]=denR;q.dIm[i]=denI;
+    let cc=cdiv(0,offI,denR,denI);q.cRe[i]=cc[0];q.cIm[i]=cc[1];}
+  {let i=N-1,dr=1,di=dt/2*(inv+V[i]);q.dRe[i]=dr-(-offI*q.cIm[i-1]);q.dIm[i]=di-(offI*q.cRe[i-1]);}
+  q.offI=offI;q.inv=inv;return q;
+}
+function cnStep(q){
+  let N=q.N,dt=q.dt,rhsR=new Float64Array(N),rhsI=new Float64Array(N);
+  for(let i=0;i<N;i++){
+    let bR=1,bI=-dt/2*(q.inv+q.V[i]),oI=-q.offI; // B off = -i*offI? B = I - i dt/2 H, off_B = -i dt/2 * (-0.5/dx^2)= +i dt/(4dx^2) = -i*offI (offI negative)
+    // rhs = B psi: diag*(re+i im) + off*(psi[i-1]+psi[i+1]), off=(0,oI) with oI = dt/(4dx^2)
+    let o=dt/(4*q.dx*q.dx);
+    let vr=bR*q.re[i]-bI*q.im[i], vi=bR*q.im[i]+bI*q.re[i];
+    if(i>0){vr+= -o*q.im[i-1]; vi+= o*q.re[i-1];}
+    if(i<N-1){vr+= -o*q.im[i+1]; vi+= o*q.re[i+1];}
+    rhsR[i]=vr; rhsI[i]=vi;
+  }
+  rhsR[0]=0;rhsI[0]=0;rhsR[N-1]=0;rhsI[N-1]=0;
+  let yR=new Float64Array(N),yI=new Float64Array(N);
+  let f=cdiv(rhsR[0],rhsI[0],q.dRe[0],q.dIm[0]);yR[0]=f[0];yI[0]=f[1];
+  for(let i=1;i<N;i++){
+    // rhs - off*yPrev, off=(0,offI): off*y = (-offI*yI, offI*yR)
+    let vr=rhsR[i]-(-q.offI*yI[i-1]), vi=rhsI[i]-(q.offI*yR[i-1]);
+    let g=cdiv(vr,vi,q.dRe[i],q.dIm[i]);yR[i]=g[0];yI[i]=g[1];
+  }
+  q.re[N-1]=yR[N-1];q.im[N-1]=yI[N-1];
+  for(let i=N-2;i>=0;i--){
+    // x = y - c*xNext, c=(cRe,cIm)
+    q.re[i]=yR[i]-(q.cRe[i]*q.re[i+1]-q.cIm[i]*q.im[i+1]);
+    q.im[i]=yI[i]-(q.cRe[i]*q.im[i+1]+q.cIm[i]*q.re[i+1]);
+  }
+  q.re[0]=0;q.im[0]=0;q.re[N-1]=0;q.im[N-1]=0;q.step++;
+}
+function cnObs(q){
+  let N=q.N,dx=q.dx,norm=0,xbar=0,x2=0,E=0,pbar=0,p2=0;
+  for(let i=0;i<N;i++){let pr=q.re[i]*q.re[i]+q.im[i]*q.im[i];norm+=pr; xbar+=q.x[i]*pr; x2+=q.x[i]*q.x[i]*pr;}
+  norm*=dx; xbar*=dx; x2*=dx; if(norm>0){xbar/=norm;x2/=norm;}
+  for(let i=1;i<N-1;i++){
+    let d2r=(q.re[i-1]-2*q.re[i]+q.re[i+1])/(dx*dx), d2i=(q.im[i-1]-2*q.im[i]+q.im[i+1])/(dx*dx);
+    let hR=-0.5*d2r+q.V[i]*q.re[i], hI=-0.5*d2i+q.V[i]*q.im[i];
+    E+=(q.re[i]*hR+q.im[i]*hI)*dx;
+    let dpr=(q.re[i+1]-q.re[i-1])/(2*dx), dpi=(q.im[i+1]-q.im[i-1])/(2*dx);
+    // <p> = Re[ psi* (-i psi') ] ; -i*(dpr+i dpi)= dpi - i dpr ; Re[ (re-i im)(dpi - i dpr) ] = re*dpi + im*dpr
+    pbar+=(q.re[i]*dpi-q.im[i]*dpr)*dx;
+    p2+=(q.re[i]*(-d2r)+q.im[i]*(-d2i))*dx;
+  }
+  if(norm>0){E/=norm;pbar/=norm;p2/=norm;}
+  let dxu=Math.sqrt(Math.max(0,x2-xbar*xbar)), dpu=Math.sqrt(Math.max(0,p2-pbar*pbar));
+  let Tp=0,Rp=0; for(let i=0;i<N;i++){let pr=(q.re[i]*q.re[i]+q.im[i]*q.im[i])*dx; if(q.x[i]>2)Tp+=pr; if(q.x[i]<-1)Rp+=pr;}
+  return {norm,E,xbar,dxu,pbar,dpu,prod:dxu*dpu,Tp,Rp};
+}
+function qGauss(qm,x0,sig,k0){let re=new Float64Array(qm),im=new Float64Array(qm);return {re,im}}
+function initQuantum(){
+  let L=24,N=256,dt=params.qdt||0.01,sys=sel.qSys,sig=params.qsig||1,k0=params.qk0||2,V0=params.qV0||2;
+  let dx=L/(N-1),x=new Float64Array(N),V=new Float64Array(N),re=new Float64Array(N),im=new Float64Array(N);
+  for(let i=0;i<N;i++){x[i]=-L/2+i*dx;V[i]=sys==='harmonic'||sys==='eigen'?0.5*x[i]*x[i]:(sys==='barrier'&&x[i]>=0&&x[i]<=1?V0:0)}
+  let put=(x0,s,k)=>{for(let i=0;i<N;i++){let g=Math.exp(-Math.pow(x[i]-x0,2)/(4*s*s));re[i]+=g*Math.cos(k*x[i]);im[i]+=g*Math.sin(k*x[i]);}};
+  if(sys==='eigen'){for(let i=0;i<N;i++){re[i]=Math.sqrt(2)*x[i]*Math.exp(-x[i]*x[i]/2)/Math.pow(Math.PI,0.25);im[i]=0}}
+  else if(sys==='double'){put(-2.5,1,0);put(2.5,1,0)}
+  else if(sys==='harmonic'){put(1.5,0.707,0)}
+  else if(sys==='barrier'){put(-6,sig,k0)}
+  else{put(-4,sig,k0)}
+  let n=0;for(let i=0;i<N;i++)n+=re[i]*re[i]+im[i]*im[i];n=Math.sqrt(n*dx);for(let i=0;i<N;i++){re[i]/=n;im[i]/=n}
+  qm=cnMake(L,N,dt,V,re,im);qm.sys=sys;simTime=0;data=[];
+}
+function runQuantumCheck(){
+  function gaussPsi(L,N,x0,sig,k0){let dx=L/(N-1),re=new Float64Array(N),im=new Float64Array(N);for(let i=0;i<N;i++){let x=-L/2+i*dx,g=Math.exp(-Math.pow(x-x0,2)/(4*sig*sig));re[i]=g*Math.cos(k0*x);im[i]=g*Math.sin(k0*x)}let n=0;for(let i=0;i<N;i++)n+=re[i]*re[i]+im[i]*im[i];n=Math.sqrt(n*dx);for(let i=0;i<N;i++){re[i]/=n;im[i]/=n}return {re,im}}
+  // free packet
+  let L=20,N=256,dx=L/(N-1),V=new Float64Array(N),g=gaussPsi(L,N,-4,1,2),q=cnMake(L,N,0.01,V,g.re,g.im);
+  let o0=cnObs(q);for(let i=0;i<200;i++)cnStep(q);let o2=cnObs(q);for(let i=0;i<200;i++)cnStep(q);let o4=cnObs(q);
+  // HO eigen n=1
+  let Vh=new Float64Array(N),re=new Float64Array(N),im=new Float64Array(N);
+  for(let i=0;i<N;i++){let x=-L/2+i*dx;Vh[i]=0.5*x*x;re[i]=Math.sqrt(2)*x*Math.exp(-x*x/2)/Math.pow(Math.PI,0.25)}
+  {let n=0;for(let i=0;i<N;i++)n+=re[i]*re[i];n=Math.sqrt(n*dx);for(let i=0;i<N;i++)re[i]/=n}
+  let qh=cnMake(L,N,0.01,Vh,re,im),oh0=cnObs(qh),p20=Array.from(re,v=>v*v);
+  for(let i=0;i<100;i++)cnStep(qh);let oh1=cnObs(qh),dpsi=Math.max(...Array.from(qh.re,(v,i)=>Math.abs(v*v+qh.im[i]*qh.im[i]-p20[i])));
+  // tunneling L=40 N=384
+  let L2=40,N2=384,Vb=new Float64Array(N2);for(let i=0;i<N2;i++){let x=-L2/2+i*(L2/(N2-1));Vb[i]=(x>=0&&x<=1)?2:0}
+  let gt=gaussPsi(L2,N2,-8,1,1.5),qt=cnMake(L2,N2,0.01,Vb,gt.re,gt.im);
+  for(let i=0;i<800;i++)cnStep(qt);let ot=cnObs(qt);
+  let kap=Math.sqrt(2*(2-1.125)),anaT=1/(1+(4*Math.pow(Math.sinh(kap),2))/(4*1.125*(2-1.125)));
+  quantumResult={norm2:o2.norm,norm4:o4.norm,dx2:o2.dxu,dx2ana:Math.sqrt(2),dx4:o4.dxu,dx4ana:Math.sqrt(5),x2:o2.xbar,x4:o4.xbar,prod0:o0.prod,Eho:oh1.E,EhoAna:1.5,dpsi, Tmeas:ot.Tp, Tana:anaT, Rmeas:ot.Rp};
+  drawAll();
+}
+// ---- 混沌：Lorenz ----
+function lorenzF(s,rho){let x=s[0],y=s[1],z=s[2];return [10*(y-x),x*(rho-z)-y,x*y-(8/3)*z]}
+function lorenzRK4(s,dt,rho){let f=x=>lorenzF(x,rho),a=(p,b,k)=>p.map((v,i)=>v+b[i]*k),k1=f(s),k2=f(a(s,k1,dt/2)),k3=f(a(s,k2,dt/2)),k4=f(a(s,k3,dt));return s.map((v,i)=>v+dt*(k1[i]+2*k2[i]+2*k3[i]+k4[i])/6)}
+function initChaos(){chState=[1,1,1];chPartner=[1+1e-6,1,1];chTrail=[];simTime=0;data=[]}
+function runChaosCheck(){
+  let rho=params.crho||28,dt=params.cdt||0.01,a=[1,1,1],b=[1+1e-6,1,1],pts=[];
+  for(let i=0;i<3000;i++){a=lorenzRK4(a,dt,rho);b=lorenzRK4(b,dt,rho);pts.push([i*dt,Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2])])}
+  let xs=[],ts=[];for(let [tt,d] of pts)if(d>1e-4&&d<0.5){ts.push(tt);xs.push(Math.log(d))}
+  let lam=0;if(ts.length>5){let n=ts.length,mx=ts.reduce((x,y)=>x+y,0)/n,my=xs.reduce((x,y)=>x+y,0)/n;lam=xs.reduce((acc,_,i)=>acc+(ts[i]-mx)*(xs[i]-my),0)/ts.reduce((acc,tt)=>acc+(tt-mx)*(tt-mx),0)}
+  chaosResult={rho,lambda:lam,d10:pts[1000][1],d20:pts[2000][1],pts};data=pts.map(d=>[d[0],Math.log10(Math.max(d[1],1e-12))]);simTime=30;drawAll();
+}
+// ---- 流体：涡量–流函数 NS，周期边界 ----
+function initFluid(){
+  let N=32; fl={N,nu:params.fnu||0.1,dt:params.fdt||0.05,t:0,w:new Float64Array(N*N),psi:new Float64Array(N*N),u:new Float64Array(N*N),v:new Float64Array(N*N),E0:0,energy:[]};
+  for(let i=0;i<N;i++)for(let j=0;j<N;j++){let x=i/N*2*Math.PI,y=j/N*2*Math.PI;fl.w[i*N+j]=2*Math.sin(x)*Math.sin(y)} // Taylor-Green omega = 2 sin x sin y (k=1)
+  for(let k=0;k<10;k++)fluidPsi(); fl.E0=fluidEnergy();
+}
+function fluidPsi(){
+  let N=fl.N,h=2*Math.PI/N;
+  for(let it=0;it<30;it++){let np=new Float64Array(N*N);
+    for(let i=0;i<N;i++)for(let j=0;j<N;j++){let ip=(i+1)%N,im=(i-1+N)%N,jp=(j+1)%N,jm=(j-1+N)%N;np[i*N+j]=0.25*(fl.psi[ip*N+j]+fl.psi[im*N+j]+fl.psi[i*N+jp]+fl.psi[i*N+jm]+h*h*fl.w[i*N+j])}
+    fl.psi=np;}
+  for(let i=0;i<N;i++)for(let j=0;j<N;j++){let ip=(i+1)%N,im=(i-1+N)%N,jp=(j+1)%N,jm=(j-1+N)%N;fl.u[i*N+j]=(fl.psi[i*N+jp]-fl.psi[i*N+jm])/(2*h);fl.v[i*N+j]=-(fl.psi[ip*N+j]-fl.psi[im*N+j])/(2*h)}
+}
+function fluidEnergy(){let E=0;for(let i=0;i<fl.N*fl.N;i++)E+=fl.u[i]*fl.u[i]+fl.v[i]*fl.v[i];return 0.5*E/(fl.N*fl.N)}
+function fluidStep(){
+  let N=fl.N,h=2*Math.PI/N,dt=fl.dt,nu=fl.nu,nw=new Float64Array(N*N);
+  for(let i=0;i<N;i++)for(let j=0;j<N;j++){
+    let ip=(i+1)%N,im=(i-1+N)%N,jp=(j+1)%N,jm=(j-1+N)%N,k=i*N+j;
+    let dwx=(fl.w[ip*N+j]-fl.w[im*N+j])/(2*h), dwy=(fl.w[i*N+jp]-fl.w[i*N+jm])/(2*h);
+    let lap=(fl.w[ip*N+j]+fl.w[im*N+j]+fl.w[i*N+jp]+fl.w[i*N+jm]-4*fl.w[k])/(h*h);
+    nw[k]=fl.w[k]+dt*(-fl.u[k]*dwx-fl.v[k]*dwy+nu*lap);
+  }
+  fl.w=nw; fluidPsi(); fl.t+=dt; fl.energy.push([fl.t,fluidEnergy()/fl.E0]); if(fl.energy.length>600)fl.energy.shift();
+}
+function runFluidCheck(){
+  initFluid(); let nu=fl.nu,rows=[];
+  for(let tt of [1,2,5]){while(fl.t<tt-1e-9)fluidStep();rows.push({t:tt,meas:fluidEnergy()/fl.E0,ana:Math.exp(-4*nu*tt)})}
+  fluidResult={nu,rows}; data=fl.energy.slice(); drawAll();
+}
+// ---- 连续介质：1D FEM 杆 ----
+function femSolve(N,E){
+  let h=1/N,F=new Float64Array(N),a=new Float64Array(N),b=new Float64Array(N),c=new Float64Array(N);
+  for(let i=0;i<N;i++){F[i]=h*Math.sin(Math.PI*(i+1)*h); if(i===N-1)F[i]=h/2*Math.sin(Math.PI); b[i]=(i<N-1?2:1)*E/h; if(i>0)a[i]=-E/h; if(i<N-1)c[i]=-E/h;}
+  let cp=new Float64Array(N),dp=new Float64Array(N);cp[0]=c[0]/b[0];dp[0]=F[0]/b[0];
+  for(let i=1;i<N;i++){let den=b[i]-a[i]*cp[i-1];cp[i]=i<N-1?c[i]/den:0;dp[i]=(F[i]-a[i]*dp[i-1])/den}
+  let u=new Float64Array(N);u[N-1]=dp[N-1];for(let i=N-2;i>=0;i--)u[i]=dp[i]-cp[i]*u[i+1];
+  let err=0;for(let i=0;i<N;i++){let x=(i+1)*h,ana=Math.sin(Math.PI*x)/Math.PI**2+x/Math.PI;err=Math.max(err,Math.abs(u[i]-ana))}
+  return {u,err,tip:u[N-1]};
+}
+function runFemCheck(){
+  let E=params.femE||1,rows=[];
+  for(let N of [8,16,32,64]){let r=femSolve(N,E);rows.push({N,err:r.err,order:null})}
+  for(let i=1;i<rows.length;i++)rows[i].order=Math.log2(rows[i-1].err/rows[i].err);
+  femResult={E,rows,cur:femSolve(Math.round(params.femN)||16,E)}; data=Array.from(femResult.cur.u,(v,i)=>[(i+1)/(femResult.cur.u.length),v]); simTime=0; drawAll();
+}
+// ---- 热统 ----
+function initThermo(){
+  if(sel.thSys==='gas'){
+    let N=Math.round(params.thN)||60; gas={N,ps:[],t:0};
+    for(let i=0;i<N;i++){let a=Math.random()*2*Math.PI,r=Math.sqrt(Math.random())*0.8;
+      // MB velocities via Box-Muller, sigma=1
+      let u1=Math.max(1e-9,Math.random()),u2=Math.random(),vx=Math.sqrt(-2*Math.log(u1))*Math.cos(2*Math.PI*u2),vy=Math.sqrt(-2*Math.log(u1))*Math.sin(2*Math.PI*u2);
+      gas.ps.push({x:r*Math.cos(a),y:r*Math.sin(a),vx,vy,rad:0.09});}
+  } else {
+    let N=64; th={N,alpha:params.thAlpha||0.01,dx:1/(N-1),T:new Float64Array(N),t:0};
+    for(let i=0;i<N;i++)th.T[i]=Math.sin(Math.PI*i*th.dx);
+    th.T0=1;
+  }
+  simTime=0; data=[];
+}
+function thermoStep(){
+  if(sel.thSys==='gas'){
+    let dt=0.01,box=1;
+    for(let pt of gas.ps){pt.x+=pt.vx*dt;pt.y+=pt.vy*dt;if(pt.x<-box+pt.rad){pt.x=-box+pt.rad;pt.vx=Math.abs(pt.vx)}if(pt.x>box-pt.rad){pt.x=box-pt.rad;pt.vx=-Math.abs(pt.vx)}if(pt.y<-box+pt.rad){pt.y=-box+pt.rad;pt.vy=Math.abs(pt.vy)}if(pt.y>box-pt.rad){pt.y=box-pt.rad;pt.vy=-Math.abs(pt.vy)}}
+    for(let i=0;i<gas.ps.length;i++)for(let j=i+1;j<gas.ps.length;j++){let a=gas.ps[i],b=gas.ps[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),min=a.rad+b.rad;
+      if(d<min&&d>1e-9){let nx=dx/d,ny=dy/d,rvx=b.vx-a.vx,rvy=b.vy-a.vy,dot=rvx*nx+rvy*ny;if(dot<0){a.vx+=dot*nx;a.vy+=dot*ny;b.vx-=dot*nx;b.vy-=dot*ny}}}
+    gas.t+=dt; let v2=gas.ps.reduce((s,pt)=>s+pt.vx*pt.vx+pt.vy*pt.vy,0)/gas.ps.length; data.push([gas.t,v2]); if(data.length>600)data.shift();
+  } else {
+    let r=th.alpha*0.0004/(th.dx*th.dx); // dt chosen so r=0.4*alpha/0.01 approx; use fixed dt=0.0004 scaled
+    let dt=0.4*th.dx*th.dx/Math.max(th.alpha,1e-6); r=th.alpha*dt/(th.dx*th.dx);
+    // r is 0.4 by construction; do 20 substeps per frame call
+    for(let s=0;s<20;s++){let nT=new Float64Array(th.N);for(let i=0;i<th.N;i++){let l=i===0?-th.T[1]:th.T[i-1],rr=i===th.N-1?-th.T[th.N-2]:th.T[i+1];nT[i]=th.T[i]+r*(l-2*th.T[i]+rr)}th.T=nT;th.t+=dt}
+    simTime=th.t; data.push([th.t,th.T[Math.floor(th.N/2)]]); if(data.length>600)data.shift();
+  }
+}
+function runThermoCheck(){
+  // heat mode
+  let N=64,alpha=0.01,dx=1/(N-1),dt=0.4*dx*dx/alpha,T=new Float64Array(N);for(let i=0;i<N;i++)T[i]=Math.sin(Math.PI*i*dx);
+  let amp={}; for(let tt of [10,50]){let steps=Math.round(tt/dt);for(let s=0;s<steps;s++){let nT=new Float64Array(N);for(let i=0;i<N;i++){let l=i===0?-T[1]:T[i-1],rr=i===N-1?-T[N-2]:T[i+1];nT[i]=T[i]+0.4*(l-2*T[i]+rr)}T=nT}amp[tt]=T[Math.floor(N/2)];}
+  // gas MB: run MD 2000 steps dt=0.01, measure <v2>, mean speed, histogram max dev in 5 bins
+  initThermo(); let saveSys=sel.thSys; sel.thSys='gas'; initThermo();
+  for(let i=0;i<2000;i++)thermoStep();
+  let v2=gas.ps.reduce((s,pt)=>s+pt.vx*pt.vx+pt.vy*pt.vy,0)/gas.ps.length, ms=gas.ps.reduce((s,pt)=>s+Math.hypot(pt.vx,pt.vy),0)/gas.ps.length;
+  let bins=[0,0,0,0,0],edges=[0,0.5,1,1.5,2,3];
+  for(let pt of gas.ps){let v=Math.hypot(pt.vx,pt.vy);for(let b=0;b<5;b++)if(v>=edges[b]&&v<edges[b+1])bins[b]++}
+  // MB 2D pdf f(v)=v*exp(-v^2/2), bin probs
+  let mb=[];for(let b=0;b<5;b++)mb.push(Math.exp(-edges[b]*edges[b]/2)-Math.exp(-edges[b+1]*edges[b+1]/2));
+  let maxdev=Math.max(...bins.map((c,b)=>Math.abs(c/gas.ps.length-mb[b])));
+  sel.thSys=saveSys; initThermo();
+  thermoResult={heat10:amp[10],heat10ana:Math.exp(-alpha*Math.PI*Math.PI*10),heat50:amp[50],heat50ana:Math.exp(-alpha*Math.PI*Math.PI*50),v2,ms,msAna:Math.sqrt(Math.PI/2),maxdev,bins,mb}; drawAll();
+}
+// ---- 数学物理：FFT ----
+function fft(re,im){
+  let n=re.length;for(let i=1,j=0;i<n;i++){let bit=n>>1;for(;j&bit;bit>>=1)j^=bit;j^=bit;if(i<j){let tr=re[i];re[i]=re[j];re[j]=tr;let ti=im[i];im[i]=im[j];im[j]=ti}}
+  for(let len=2;len<=n;len*=2){let ang=-2*Math.PI/len;
+    for(let i=0;i<n;i+=len)for(let j=0;j<len/2;j++){let wr=Math.cos(ang*j),wi=Math.sin(ang*j),ur=re[i+j+len/2],ui=im[i+j+len/2];
+      let vr=ur*wr-ui*wi,vi=ur*wi+ui*wr;re[i+j+len/2]=re[i+j]-vr;im[i+j+len/2]=im[i+j]-vi;re[i+j]+=vr;im[i+j]+=vi;}}
+}
+function mathCompute(){
+  let N=256,sig=params.msig||1,freq=params.mfreq||1,x=new Float64Array(N),re=new Float64Array(N),im=new Float64Array(N);
+  for(let i=0;i<N;i++){x[i]=-5+i*(10/N);re[i]=Math.exp(-x[i]*x[i]/(2*sig*sig))+0.3*Math.sin(2*Math.PI*freq*x[i]/10)}
+  let reF=re.slice(),imF=im.slice();fft(reF,imF);
+  let dx=10/N,parseL=0,parseR=0;for(let i=0;i<N;i++){parseL+=re[i]*re[i]*dx;parseR+=(reF[i]*reF[i]+imF[i]*imF[i])*dx/(N*N)* (2*Math.PI/(10/N)) / (2*Math.PI) * N; }
+  // Parseval discrete: sum|f|^2 dx = (dx/N) sum|F|^2 * (2pi/(N dx))? Use direct: sum|f|^2 = (1/N) sum|F_fft|^2 (unnormalised FFT)
+  let s1=0,s2=0;for(let i=0;i<N;i++){s1+=re[i]*re[i];s2+=(reF[i]*reF[i]+imF[i]*imF[i])/N}
+  // Gaussian FT error: use pure Gaussian separately
+  let rg=new Float64Array(N),ig=new Float64Array(N);for(let i=0;i<N;i++)rg[i]=Math.exp(-x[i]*x[i]/2);
+  let rgF=rg.slice(),igF=ig.slice();fft(rgF,igF);
+  let maxErr=0,maxA=0;for(let k=0;k<N;k++){let kk=(k<=N/2?k:k-N)*(2*Math.PI/10);let ana=Math.sqrt(2*Math.PI)*Math.exp(-kk*kk/2);let meas=Math.hypot(rgF[k],igF[k])*dx;maxErr=Math.max(maxErr,Math.abs(meas-ana));maxA=Math.max(maxA,ana)}
+  // Gibbs: square wave Fourier series K=25
+  let gibbs=0;for(let xx=0.01;xx<0.5;xx+=0.005){let s=0;for(let k=1;k<=49;k+=2)s+=Math.sin(k*Math.PI*xx)/k;gibbs=Math.max(gibbs,4/Math.PI*s)}
+  return {x,re,spec:Array.from({length:N},(_,i)=>Math.hypot(reF[i],imF[i])),parseRatio:s2/s1,gaussErr:maxErr/maxA,gibbs};
+}
+function runMathCheck(){mathResult=mathCompute();drawAll()}
+// ---- 天体：N 体 ----
+function initAstro(){
+  let N=Math.round(params.aN)||48,dt=params.adt2||0.01; astro={N,dt,t:0,ps:[],E0:0};
+  for(let i=0;i<N;i++){
+    // Plummer radius via inverse CDF: r = a / sqrt(u^{-2/3}-1), a=1
+    let u=Math.max(1e-6,Math.random()),r=Math.min(1/Math.sqrt(Math.pow(u,-2/3)-1),5);
+    let th=Math.random()*2*Math.PI,ph=Math.acos(2*Math.random()-1);
+    let px=r*Math.sin(ph)*Math.cos(th),py=r*Math.sin(ph)*Math.sin(th),pz=r*Math.cos(ph)*0.3;
+    let Mr=Math.pow(r,3)/Math.pow(r*r+1,1.5),vc=Math.sqrt(Math.max(0,Mr)/Math.max(r,0.2));
+    // tangential velocity (random direction perpendicular to r)
+    let tx=-Math.sin(th),ty=Math.cos(th); astro.ps.push({x:px,y:py,z:pz,vx:tx*vc*0.9,vy:ty*vc*0.9,vz:(Math.random()-0.5)*0.2,m:1/N});
+  }
+  // scale velocities to virial equilibrium
+  let T=0,U=0;for(let pt of astro.ps)T+=0.5*pt.m*(pt.vx*pt.vx+pt.vy*pt.vy+pt.vz*pt.vz);
+  for(let i=0;i<N;i++)for(let j=i+1;j<N;j++){let dx=astro.ps[j].x-astro.ps[i].x,dy=astro.ps[j].y-astro.ps[i].y,dz=astro.ps[j].z-astro.ps[i].z,d=Math.hypot(dx,dy,dz);U-=astro.ps[i].m*astro.ps[j].m/Math.sqrt(d*d+0.01)}
+  let s=Math.sqrt(Math.abs(U)/(2*T));for(let pt of astro.ps){pt.vx*=s;pt.vy*=s;pt.vz*=s}
+  astro.E0=astroEnergy(); astro.energy=[[0,astro.E0]];
+}
+function astroEnergy(){let T=0,U=0,N=astro.N;for(let pt of astro.ps)T+=0.5*pt.m*(pt.vx*pt.vx+pt.vy*pt.vy+pt.vz*pt.vz);for(let i=0;i<N;i++)for(let j=i+1;j<N;j++){let dx=astro.ps[j].x-astro.ps[i].x,dy=astro.ps[j].y-astro.ps[i].y,dz=astro.ps[j].z-astro.ps[i].z,d=Math.hypot(dx,dy,dz);U-=astro.ps[i].m*astro.ps[j].m/Math.sqrt(d*d+0.01)}return {T,U,E:T+U}}
+function astroStep(){
+  let N=astro.N,dt=astro.dt,eps2=0.01;
+  function acc(){let a=astro.ps.map(()=>({x:0,y:0,z:0}));for(let i=0;i<N;i++)for(let j=0;j<N;j++){if(i===j)continue;let dx=astro.ps[j].x-astro.ps[i].x,dy=astro.ps[j].y-astro.ps[i].y,dz=astro.ps[j].z-astro.ps[i].z,d2=dx*dx+dy*dy+dz*dz+eps2,d=Math.sqrt(d2),f=astro.ps[j].m/(d2*d);a[i].x+=f*dx;a[i].y+=f*dy;a[i].z+=f*dz}return a}
+  let a1=acc();for(let pt of astro.ps){pt.vx+=a1[astro.ps.indexOf(pt)].x*dt/2;pt.vy+=a1[astro.ps.indexOf(pt)].y*dt/2;pt.vz+=a1[astro.ps.indexOf(pt)].z*dt/2}
+  // fix: indexOf in loop is O(n) but ok for N<=100; use indexed loop instead below by redoing with index
+  for(let pt of astro.ps){pt.x+=pt.vx*dt;pt.y+=pt.vy*dt;pt.z+=pt.vz*dt}
+  let a2=acc();for(let i=0;i<N;i++){astro.ps[i].vx+=a2[i].x*dt/2;astro.ps[i].vy+=a2[i].y*dt/2;astro.ps[i].vz+=a2[i].z*dt/2}
+  astro.t+=dt;let e=astroEnergy();astro.energy.push([astro.t,e.E]);if(astro.energy.length>600)astro.energy.shift();
+}
+function runAstroCheck(){
+  initAstro(); let E0=astroEnergy().E;
+  // rotation curve bins measured at t=0 (before relaxation disperses velocities)
+  let bins=[];for(let b=0;b<4;b++){let lo=b*1.0,hi=lo+1.0,vs=[];for(let pt of astro.ps){let r=Math.hypot(pt.x,pt.y);if(r>=lo&&r<hi){let vt=Math.abs(-pt.y*pt.vx+pt.x*pt.vy)/Math.max(r,1e-9);vs.push(vt)}}
+    if(vs.length>=3){let vm=vs.reduce((a,c)=>a+c,0)/vs.length,rs=[];for(let pt of astro.ps){let r=Math.hypot(pt.x,pt.y);if(r>=lo&&r<hi)rs.push(r)}let rm=rs.reduce((a,c)=>a+c,0)/rs.length,Mr=Math.pow(rm,3)/Math.pow(rm*rm+1,1.5),va=Math.sqrt(Mr/rm);bins.push({r:rm,n:vs.length,meas:vm,ana:va,err:Math.abs(vm-va)/va})}}
+  for(let i=0;i<500;i++)astroStep(); let E1=astroEnergy();
+  let virial=2*E1.T/Math.abs(E1.U);
+  let lens=[5,10,20].map(b=>({b,alpha:4/b}));
+  astroResult={E0,E1:E1.E,drift:Math.abs(E1.E-E0)/Math.abs(E0),virial,bins,lens}; data=astro.energy.slice(); drawAll();
+}
+// ---- 真实 3D：Vec3 + 透视相机 ----
+function V3(x,y,z){return {x,y,z}} function vadd(a,b){return V3(a.x+b.x,a.y+b.y,a.z+b.z)} function vsub(a,b){return V3(a.x-b.x,a.y-b.y,a.z-b.z)} function vscale(a,k){return V3(a.x*k,a.y*k,a.z*k)} function vdot(a,b){return a.x*b.x+a.y*b.y+a.z*b.z} function vcross(a,b){return V3(a.y*b.z-a.z*b.y,a.z*b.x-a.x*b.z,a.x*b.y-a.y*b.x)} function vlen(a){return Math.hypot(a.x,a.y,a.z)}
+function proj3(p,ox,oy,scale){let ca=Math.cos(angle),sa=Math.sin(angle),cp=Math.cos(pitch),sp=Math.sin(pitch);
+let X=p.x*ca-p.y*sa, Y=p.x*sa+p.y*ca, Z=p.z;
+let Y2=Y*cp-Z*sp, Z2=Y*sp+Z*cp+14/camDist;
+let f=340/camDist, d=Math.max(2,Z2); return [ox+f*X/d, oy-f*Y2/d, d]}
+function field3(p){if(sel.field==='central'){let r=Math.max(0.5,vlen(p)),mu=30;return vscale(p,-mu/(r*r*r))}
+if(sel.field==='harmonic')return vscale(p,-1.2);
+if(sel.field==='vortex'){let r=Math.max(0.5,Math.hypot(p.x,p.y));return V3(-p.y/(r*r)*8-p.x*30/Math.pow(vlen(p),3), p.x/(r*r)*8-p.y*30/Math.pow(vlen(p),3), -p.z*0.5)}
+let d=2;function E1(cx,q){let dx=p.x-cx,dy=p.y,dz=p.z,r=Math.max(0.6,Math.hypot(dx,dy,dz));return vscale(V3(dx,dy,dz),8.987*q/Math.pow(r,3))}let a=E1(-d,1),b=E1(d,-1);return vadd(a,b)}
+function surfZ(x,y){if(sel.surf==='paraboloid')return 0.12*(x*x+y*y);if(sel.surf==='wave')return Math.sin(x*0.7)*Math.cos(y*0.7)*1.2;if(sel.surf==='saddle')return 0.18*(x*x-y*y);if(sel.surf==='flamm'){let rs=2,r=Math.hypot(x,y);return r<=rs?0:2*Math.sqrt(rs*(r-rs))*0.9}return 0}
+function initParticles(){let n=params.pcount||120;particles=[];for(let i=0;i<n;i++){let th=Math.random()*Math.PI*2,ph=Math.acos(2*Math.random()-1),r=3+Math.random()*5;
+let p=V3(r*Math.sin(ph)*Math.cos(th),r*Math.sin(ph)*Math.sin(th),r*Math.cos(ph)*0.6);
+let v=V3((Math.random()-0.5)*1.2,(Math.random()-0.5)*1.2,(Math.random()-0.5)*0.8);particles.push({p,v,trail:[]})}
+particleEnergy=[];simTime=0}
+function stepParticles(dt){let E=0;for(let pt of particles){let a=field3(pt.p);let v2=vadd(pt.v,vscale(a,dt/2));pt.p=vadd(pt.p,vscale(v2,dt));let a2=field3(pt.p);pt.v=vadd(v2,vscale(a2,dt/2));
+if(sel.field==='central'){let r=vlen(pt.p);E+=0.5*vdot(pt.v,pt.v)-30/Math.max(0.5,r)}else if(sel.field==='harmonic'){E+=0.5*vdot(pt.v,pt.v)+0.6*vdot(pt.p,pt.p)}
+pt.trail.push({...pt.p});if(pt.trail.length>25)pt.trail.shift()}
+simTime+=dt;particleEnergy.push([simTime,E/particles.length]);if(particleEnergy.length>600)particleEnergy.shift()}
+function advance(dt){if(current==='thermo'){if(!th&&!gas)initThermo();thermoStep();simTime=sel.thSys==='gas'?gas.t:th.t;return}
+if(current==='mathphys'){simTime+=dt;return}
+if(current==='astro'){if(!astro)initAstro();for(let i=0;i<3;i++)astroStep();simTime=astro.t;data=astro.energy.slice();return}
+if(current==='chaos'){if(!chState)initChaos();let h=params.cdt||0.01,n=Math.max(1,Math.ceil(0.05/h));for(let i=0;i<n;i++){chState=lorenzRK4(chState,h,params.crho||28);chPartner=lorenzRK4(chPartner,h,params.crho||28);simTime+=h;chTrail.push(chState.slice());if(chTrail.length>800)chTrail.shift()}let d=Math.hypot(chState[0]-chPartner[0],chState[1]-chPartner[1],chState[2]-chPartner[2]);data.push([simTime,Math.log10(Math.max(d,1e-12))]);if(data.length>1200)data.shift();return}
+if(current==='fluid'){if(!fl)initFluid();let n=3;for(let i=0;i<n;i++)fluidStep();simTime=fl.t;data=fl.energy.slice();return}
+if(current==='continuum'){simTime+=dt;return}
+if(current==='quantum'){if(!qm)initQuantum();let n=Math.max(1,Math.round(0.05/(params.qdt||0.01)));for(let i=0;i<n;i++)cnStep(qm);simTime+= (params.qdt||0.01)*n;let o=cnObs(qm);data.push([simTime,o.xbar]);if(data.length>1200)data.shift();return}
+if(current==='maxwell'){if(!mx)initMaxwell();let n=Math.max(1,Math.round(0.016/(params.mdt||0.35)*3));for(let i=0;i<n;i++)mxStep();data=mx.energy.slice();return}
+if(current==='analytic'){let h=params.adt||0.01,n=Math.max(1,Math.ceil(dt/h));let m=sel.anaMethod;if(sel.anaSys==='double'&&(m==='verlet'||m==='symp_euler'))m='imp_mid';for(let i=0;i<n;i++){state=stepHam(sel.anaSys,state,h,m);simTime+=h;if(anaPartner){anaPartner=stepHam(sel.anaSys,anaPartner,h,'rk4')}else if(sel.anaSys==='double'){anaPartner=state.slice();anaPartner[1]+=1e-6}anaLiveTrail.push(state.slice());if(anaLiveTrail.length>400)anaLiveTrail.shift()}data.push([simTime,Math.abs(hamEnergy(sel.anaSys,state)-hamEnergy(sel.anaSys,sel.anaSys==='double'?[2.0,1.2,0,0]:[1,0]))]);if(data.length>1200)data.shift();return}
+if(current==='lab3d'){let h=params.pdt||0.005,n=Math.max(1,Math.ceil(dt/h));for(let i=0;i<n;i++)stepParticles(h);data=particleEnergy.slice();return}
+if(current==='gr'){simTime+=dt;sample();return}
+if(current==='validation'){simTime+=dt;return}
+if(['projectile','pendulum','orbit'].includes(current)){let h=params.dt||.01,n=Math.max(1,Math.ceil(dt/h));h=dt/n;for(let i=0;i<n;i++){state=rk4(state,h);simTime+=h;if(current==='projectile'&&state[1]<0&&simTime>.03){state[1]=0;running=false}}}else simTime+=dt;sample()}
+function sample(){let y=current==='projectile'?state[1]:current==='pendulum'?state[0]:current==='orbit'?Math.hypot(state[0],state[1]):current==='wave'?params.amp*Math.sin(-2*Math.PI*params.freq*simTime):current==='electric'?field(params.probe,0).x:current==='gr'&&grResult&&grResult.traj.length?grResult.traj[grResult.traj.length-1].r:metricFactor(Math.max(params.rs*1.02,simTime%Math.max(1,params.extent-params.rs)+params.rs));data.push([simTime,y]);if(data.length>1200)data.shift()}
+function field(x,y){let q=params.q*1e-6,d=params.sep/2,k=8.9875517923e9,charges=[[-d,0,q],[d,0,-q]],E={x:0,y:0};for(let [cx,cy,qq] of charges){let dx=x-cx,dy=y-cy,r=Math.max(.15,Math.hypot(dx,dy));E.x+=k*qq*dx/r**3;E.y+=k*qq*dy/r**3}return E}
+function metricFactor(r){return 1/Math.sqrt(Math.max(.015,1-params.rs/r))}
+// ---- 广义相对论求解器：数值微分度规 -> Gamma -> Riemann -> Ricci -> Kretschmann ----
+function GR(rs){let M=rs/2;
+function g(mu,nu,x){if(mu!==nu)return 0;let r=x[1],th=x[2];if(mu===0)return -(1-rs/r);if(mu===1)return 1/(1-rs/r);if(mu===2)return r*r;return r*r*Math.sin(th)*Math.sin(th)}
+function ginv(mu,nu,x){return mu===nu?1/g(mu,mu,x):0}
+function dg(mu,nu,coord,x){let h=1e-5*(coord===1?Math.max(1,x[1]):1),xp=x.slice(),xm=x.slice();xp[coord]+=h;xm[coord]-=h;return (g(mu,nu,xp)-g(mu,nu,xm))/(2*h)}
+function GammaNum(mu,nu,rho,x){let v=0;for(let s=0;s<4;s++)v+=0.5*ginv(mu,s,x)*(dg(s,rho,nu,x)+dg(s,nu,rho,x)-dg(nu,rho,s,x));return v}
+function GammaAn(mu,nu,rho,x){let r=x[1],th=x[2];
+if(mu===0&&((nu===0&&rho===1)||(nu===1&&rho===0)))return rs/(2*r*(r-rs));
+if(mu===1&&nu===0&&rho===0)return rs*(r-rs)/(2*r*r*r);
+if(mu===1&&nu===1&&rho===1)return -rs/(2*r*(r-rs));
+if(mu===1&&nu===2&&rho===2)return -(r-rs);
+if(mu===1&&nu===3&&rho===3)return -(r-rs)*Math.sin(th)*Math.sin(th);
+if(mu===2&&((nu===1&&rho===2)||(nu===2&&rho===1)))return 1/r;
+if(mu===2&&nu===3&&rho===3)return -Math.sin(th)*Math.cos(th);
+if(mu===3&&((nu===1&&rho===3)||(nu===3&&rho===1)))return 1/r;
+if(mu===3&&((nu===2&&rho===3)||(nu===3&&rho===2)))return Math.cos(th)/Math.sin(th);return 0}
+function dGamma(mu,nu,rho,coord,x){let h=1e-4,xp=x.slice(),xm=x.slice();xp[coord]+=h;xm[coord]-=h;return (GammaAn(mu,nu,rho,xp)-GammaAn(mu,nu,rho,xm))/(2*h)}
+function Riem(rho,sig,mu,nu,x){let v=dGamma(rho,nu,sig,mu,x)-dGamma(rho,mu,sig,nu,x);for(let lam=0;lam<4;lam++)v+=GammaAn(rho,mu,lam,x)*GammaAn(lam,nu,sig,x)-GammaAn(rho,nu,lam,x)*GammaAn(lam,mu,sig,x);return v}
+return {M,g,ginv,GammaNum,GammaAn,Riem}}
+function runGR(){let rs=params.grs||2,r=params.grr||6,r0=params.gr0||6,fac=params.gfac||0.92,dt=params.gdt||0.02;
+let gr=GR(rs),x=[0,r,Math.PI/2,0],gam=[],maxGammaErr=0;
+for(let mu=0;mu<4;mu++)for(let nu=0;nu<4;nu++)for(let rho=nu;rho<4;rho++){let an=gr.GammaAn(mu,nu,rho,x),num=gr.GammaNum(mu,nu,rho,x);if(Math.abs(an)>1e-12||Math.abs(num)>1e-9){gam.push({mu,nu,rho,an,num,err:Math.abs(an-num)});maxGammaErr=Math.max(maxGammaErr,Math.abs(an-num))}}
+let ricci=[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]],maxRic=0;
+for(let s=0;s<4;s++)for(let n=0;n<4;n++){let v=0;for(let rho=0;rho<4;rho++)v+=gr.Riem(rho,s,rho,n,x);ricci[s][n]=v;maxRic=Math.max(maxRic,Math.abs(v))}
+let Knum=0;for(let a=0;a<4;a++)for(let b=0;b<4;b++)for(let c=0;c<4;c++)for(let d=0;d<4;d++){let Rdown=0;for(let e=0;e<4;e++)Rdown+=gr.g(a,e,x)*gr.Riem(e,b,c,d,x);let Rup=0;for(let e=0;e<4;e++)for(let f=0;f<4;f++)for(let gg=0;gg<4;gg++)for(let hh=0;hh<4;hh++)Rup+=gr.ginv(a,e,x)*gr.ginv(b,f,x)*gr.ginv(c,gg,x)*gr.ginv(d,hh,x)*(function(){let v=0;for(let q=0;q<4;q++)v+=gr.g(e,q,x)*gr.Riem(q,f,gg,hh,x);return v})();Knum+=Rdown*Rup}
+let Kana=12*rs*rs/Math.pow(r,6);
+// 测地线：8 维 [t,r,theta,phi,ut,ur,uth,uph]，赤道面，u^r=0
+let M=rs/2,Om=Math.sqrt(M/Math.pow(r0,3)),ut0=1/Math.sqrt(Math.max(0.05,1-3*M/r0)),Lcirc=Math.sqrt(M*r0)/Math.sqrt(Math.max(0.05,1-3*M/r0)),L=Lcirc*fac;
+let uph0=L/(r0*r0),ut=ut0*Math.sqrt(Math.max(0.05,(1+ (r0*r0*uph0*uph0) )/(1-rs/r0) * (1-rs/r0) ) /1); // 先按归一化重算：-1=gtt ut^2+gphph uph^2
+ut=Math.sqrt((1+ (r0*r0*uph0*uph0))/ (1-rs/r0));
+let y=[0,r0,Math.PI/2,0,ut,0,0,uph0],E0=(1-rs/r0)*ut,L0=L,traj=[{r:r0,phi:0,t:0}],maxEDrift=0,maxLDrift=0,steps=4000,plunged=false;
+function geoDeriv(s){let xx=[s[0],s[1],s[2],s[3]],u=[s[4],s[5],s[6],s[7]],du=[0,0,0,0];for(let mu=0;mu<4;mu++){let v=0;for(let nu=0;nu<4;nu++)for(let rho=0;rho<4;rho++)v-=gr.GammaAn(mu,nu,rho,xx)*u[nu]*u[rho];du[mu]=v}return [u[0],u[1],u[2],u[3],du[0],du[1],du[2],du[3]]}
+function rk4geo(s,h){let add=(a,b,k)=>a.map((v,i)=>v+b[i]*k),k1=geoDeriv(s),k2=geoDeriv(add(s,k1,h/2)),k3=geoDeriv(add(s,k2,h/2)),k4=geoDeriv(add(s,k3,h));return s.map((v,i)=>v+h*(k1[i]+2*k2[i]+2*k3[i]+k4[i])/6)}
+for(let i=0;i<steps;i++){y=rk4geo(y,dt);if(y[1]<=rs*1.02||!isFinite(y[1])){plunged=true;break}let E=(1-rs/y[1])*y[4],Lv=y[1]*y[1]*y[7];maxEDrift=Math.max(maxEDrift,Math.abs(E-E0)/Math.abs(E0));maxLDrift=Math.max(maxLDrift,Math.abs(Lv-L0)/Math.abs(L0));if(i%4===0)traj.push({r:y[1],phi:y[3],t:y[0]})}
+grResult={rs,r,r0,fac,gam,maxGammaErr,ricci,maxRic,Knum,Kana,Krel:Math.abs(Knum-Kana)/Kana,traj,E0,L0,maxEDrift,maxLDrift,plunged,ut0,uph0};
+geoTraj=traj;data=traj.map(p=>[p.t,p.r]);simTime=y[0];drawAll()}
+function drawGrid(c,w,h){c.strokeStyle='#1d2b45';c.lineWidth=1;for(let x=0;x<w;x+=35){c.beginPath();c.moveTo(x,0);c.lineTo(x,h);c.stroke()}for(let y=0;y<h;y+=35){c.beginPath();c.moveTo(0,y);c.lineTo(w,y);c.stroke()}}
+function draw2d(){let c=ctx2,w=c.canvas.width,h=c.canvas.height;c.clearRect(0,0,w,h);drawGrid(c,w,h);c.strokeStyle='#59708f';c.beginPath();c.moveTo(35,h-35);c.lineTo(w-15,h-35);c.moveTo(35,15);c.lineTo(35,h-35);c.stroke();c.fillStyle='#9aabc8';c.font='12px sans-serif';
+if(current==='thermo'){
+  if(sel.thSys==='gas'&&gas){c.fillText('2D 理想气体硬盘：碰撞后速度重新分布趋向 Maxwell–Boltzmann',15,24);for(let pt of gas.ps){c.fillStyle='#55d6e8';c.beginPath();c.arc(w/2+pt.x*w*0.42,h/2-pt.y*h*0.42,5,0,7);c.fill();c.strokeStyle='#ffb45c';c.beginPath();c.moveTo(w/2+pt.x*w*0.42,h/2-pt.y*h*0.42);c.lineTo(w/2+(pt.x+pt.vx*0.15)*w*0.42,h/2-(pt.y+pt.vy*0.15)*h*0.42);c.stroke()}}
+  else if(th){c.fillText('热传导 T(x)：两端恒为 0°C，sin 模按 exp(−απ²t) 衰减',15,24);c.strokeStyle='#55d6e8';c.lineWidth=2;c.beginPath();for(let i=0;i<th.N;i++){let x=35+i/(th.N-1)*(w-70),y=h-60-th.T[i]*220;i?c.lineTo(x,y):c.moveTo(x,y)}c.stroke()}}
+else if(current==='mathphys'){let mc=mathCompute();c.fillText('信号 f(x)（青）与高斯包络：频谱见下图',15,24);c.strokeStyle='#55d6e8';c.beginPath();mc.x.forEach((x,i)=>{let px=35+i/(mc.x.length-1)*(w-70),py=h/2-mc.re[i]*90;i?c.lineTo(px,py):c.moveTo(px,py)});c.stroke()}
+else if(current==='astro'&&astro){c.fillText('N 体 Plummer 球投影：引力使系统保持束缚，个别粒子可逃逸',15,24);for(let pt of astro.ps){c.fillStyle='#55d6e8';c.beginPath();c.arc(w/2+pt.x*w*0.09,h/2-pt.y*h*0.09,3,0,7);c.fill()}c.fillStyle='#ffb45c';c.beginPath();c.arc(w/2,h/2,6,0,7);c.fill()}
+else if(current==='chaos'){c.fillText('Lorenz 吸引子 x–z 投影：青色原轨迹，橙色为初值差 1e-6 的伴随轨迹',15,24);let sc=9,cx=w/2,cy=h/2+40;c.strokeStyle='#55d6e8';c.lineWidth=1.5;c.beginPath();chTrail.forEach((s,i)=>{let x=cx+s[0]*sc,y=cy-s[2]*sc;i?c.lineTo(x,y):c.moveTo(x,y)});c.stroke();c.fillStyle='#ffb45c';c.beginPath();c.arc(cx+chState[0]*sc,cy-chState[2]*sc,6,0,7);c.fill();c.fillStyle='#9aabc8';c.fillText('x='+chState[0].toFixed(2)+'  y='+chState[1].toFixed(2)+'  z='+chState[2].toFixed(2),15,h-12)}
+else if(current==='fluid'&&fl){let N=fl.N,cw=w/N,chh=h/N;for(let i=0;i<N;i++)for(let j=0;j<N;j++){let v=fl.w[i*N+j],a=Math.min(1,Math.abs(v)/2);c.fillStyle=v>=0?`rgba(255,90,90,${a.toFixed(2)})`:`rgba(85,150,255,${a.toFixed(2)})`;c.fillRect(i*cw,j*chh,cw+1,chh+1)}c.fillStyle='#fff';c.fillText('涡量场 ω（红正蓝负）：Taylor–Green 涡随黏性衰减',12,20)}
+else if(current==='continuum'&&femResult){let u=femResult.cur.u;c.strokeStyle='#55d6e8';c.lineWidth=2;c.beginPath();u.forEach((v,i)=>{let x=35+i/(u.length-1)*(w-70),y=h-60-v*180;i?c.lineTo(x,y):c.moveTo(x,y)});c.stroke();c.strokeStyle='#ffb45c';c.beginPath();for(let i=0;i<u.length-1;i++){let s=(u[i+1]-u[i])/(1/u.length);let x=35+i/(u.length-1)*(w-70),y=h-60-s*40;i?c.lineTo(x,y):c.moveTo(x,y)}c.stroke();c.fillStyle='#9aabc8';c.fillText('位移 u(x)（青）与应力 σ=E·du/dx（橙，示意缩放）',15,24)}
+else if(current==='quantum'&&qm){let w2=w,h2=h; c.fillText('|ψ|²（青填充）· Re ψ（白）· Im ψ（橙）· V(x)（灰）',15,24);
+  let maxP=0;for(let i=0;i<qm.N;i++)maxP=Math.max(maxP,qm.re[i]*qm.re[i]+qm.im[i]*qm.im[i]);
+  c.fillStyle='rgba(85,214,232,0.35)';c.beginPath();c.moveTo(35,h-40);for(let i=0;i<qm.N;i++){let x=35+i/(qm.N-1)*(w-70),y=h-40-(qm.re[i]*qm.re[i]+qm.im[i]*qm.im[i])/Math.max(maxP,1e-9)*180;c.lineTo(x,y)}c.lineTo(35+(w-70),h-40);c.closePath();c.fill();
+  c.strokeStyle='#8a9bb8';c.beginPath();for(let i=0;i<qm.N;i++){let x=35+i/(qm.N-1)*(w-70),y=h-40-qm.V[i]/Math.max(1,...qm.V)*60;i?c.lineTo(x,y):c.moveTo(x,y)}c.stroke();
+  let draw=(arr,col)=>{c.strokeStyle=col;c.lineWidth=1.5;c.beginPath();for(let i=0;i<qm.N;i++){let x=35+i/(qm.N-1)*(w-70),y=h/2-arr[i]*90;i?c.lineTo(x,y):c.moveTo(x,y)}c.stroke()};
+  draw(qm.re,'#ffffff');draw(qm.im,'#ffb45c');c.fillStyle='#9aabc8';c.fillText('max|ψ|²='+maxP.toFixed(3)+'  t='+simTime.toFixed(2),15,h-12)}
+else if(current==='maxwell'&&mx){
+  if(mx.dim==='1d'){c.fillText('Ez (青) 与 Hy (橙)：右行高斯脉冲，灰色带为介质板',15,24);let sc=(w-70)/mx.N;c.fillStyle='rgba(255,180,92,0.15)';if(sel.mxSlab)c.fillRect(35+120*sc,20,40*sc,h-60);c.strokeStyle='#55d6e8';c.lineWidth=2;c.beginPath();for(let i=0;i<mx.N;i++){let x=35+i*sc,y=h/2-mx.Ez[i]*110;i?c.lineTo(x,y):c.moveTo(x,y)}c.stroke();c.strokeStyle='#ffb45c';c.beginPath();for(let i=0;i<mx.N-1;i++){let x=35+i*sc,y=h/2-mx.Hy[i]*110;i?c.lineTo(x,y):c.moveTo(x,y)}c.stroke();c.fillStyle='#9aabc8';c.fillText('max|Ez|='+Math.max(...Array.from(mx.Ez,Math.abs)).toFixed(3)+'  步数 '+mx.step,15,h-12)}
+  else{let Nx=mx.Nx,Ny=mx.Ny,cw=w/Nx,chh=h/Ny;for(let i=0;i<Nx;i++)for(let j=0;j<Ny;j++){let v=mx.Ez[i*Ny+j],a=Math.min(1,Math.abs(v)*3);c.fillStyle=v>=0?`rgba(255,90,90,${a.toFixed(2)})`:`rgba(85,150,255,${a.toFixed(2)})`;c.fillRect(i*cw,j*chh,cw+1,chh+1)}if(sel.mxSlab){c.strokeStyle='rgba(255,180,92,0.9)';c.strokeRect(48*cw,0,13*cw,h)}c.fillStyle='#fff';c.fillText('2D TEz Ez 热图（红正蓝负），橙框为介质板，中心为正弦点源',12,20)}}
+else if(current==='analytic'){let cx=w/2,cy=h/2;
+  if(sel.anaSys==='double'){let L=110,x1=cx+L*Math.sin(state[0]),y1=cy+L*Math.cos(state[0]),x2=x1+L*Math.sin(state[1]),y2=y1+L*Math.cos(state[1]);c.strokeStyle='#8aa4ca';c.lineWidth=3;c.beginPath();c.moveTo(cx,cy);c.lineTo(x1,y1);c.lineTo(x2,y2);c.stroke();c.fillStyle='#55d6e8';c.beginPath();c.arc(x1,y1,10,0,7);c.fill();c.beginPath();c.arc(x2,y2,12,0,7);c.fill();
+    if(anaPartner){let q1=cx+L*Math.sin(anaPartner[0]),r1=cy+L*Math.cos(anaPartner[0]),q2=q1+L*Math.sin(anaPartner[1]),r2=r1+L*Math.cos(anaPartner[1]);c.strokeStyle='rgba(255,180,92,0.8)';c.beginPath();c.moveTo(cx,cy);c.lineTo(q1,r1);c.lineTo(q2,r2);c.stroke();c.fillStyle='#ffb45c';c.beginPath();c.arc(q2,r2,6,0,7);c.fill()}
+    c.fillStyle='#9aabc8';c.fillText('双摆：青色为原轨迹，橙色为 θ₂+1e-6 的伴随轨迹（混沌分离）',15,24);c.fillText('θ₁='+(state[0]*180/Math.PI).toFixed(1)+'°  θ₂='+(state[1]*180/Math.PI).toFixed(1)+'°',15,42)}
+  else{let sc=110;c.strokeStyle='#4c6282';c.beginPath();c.ellipse(cx,cy,sc,sc*0.55,0,0,Math.PI*2);c.stroke();c.strokeStyle='#55d6e8';c.beginPath();anaLiveTrail.forEach((s,i)=>{let x=cx+s[0]*sc,y=cy-s[1]*sc*0.55;i?c.lineTo(x,y):c.moveTo(x,y)});c.stroke();c.fillStyle='#ffb45c';c.beginPath();c.arc(cx+state[0]*sc,cy-state[1]*sc*0.55,7,0,7);c.fill();c.fillStyle='#9aabc8';c.fillText('相空间 (q, p)：'+(sel.anaSys==='osc'?'谐振子椭圆轨道':'单摆相轨迹'),15,24)}}
+else if(current==='validation'&&validationResult){c.fillText('收敛性：误差随步长减小而减小，斜率≈理论阶',15,24);let rows=validationResult.rows,logs=rows.map(r=>Math.log10(Math.max(r.err,1e-16))),lo=Math.min(...logs),hi=Math.max(...logs),rg=(hi-lo)||1;let pt=(i)=>[60+i*150,h-70-(logs[i]-lo)/rg*(h-140)];c.strokeStyle='#55d6e8';c.lineWidth=2;c.beginPath();rows.forEach((r,i)=>{let [x,y]=pt(i);i?c.lineTo(x,y):c.moveTo(x,y)});c.stroke();rows.forEach((r,i)=>{let [x,y]=pt(i);c.fillStyle='#ffb45c';c.beginPath();c.arc(x,y,5,0,7);c.fill();c.fillStyle='#9aabc8';c.fillText('h='+r.h.toFixed(3),x-20,h-35);c.fillText(r.err.toExponential(1),x-25,h-20)})}
+else if(current==='lab3d'){c.fillText('俯视图（x–y 平面）：粒子 + 中心天体',15,24);let cx=w/2,cy=h/2,sc=14;c.fillStyle='#ffb45c';c.beginPath();c.arc(cx,cy,10,0,7);c.fill();for(let pt of particles){c.fillStyle='#55d6e8';c.beginPath();c.arc(cx+pt.p.x*sc,cy-pt.p.y*sc,3,0,7);c.fill()}}
+else if(current==='gr'&&grResult){let cx=w/2,cy=h/2,sc=Math.min(w,h)/28;c.fillText('测地线轨道（赤道面极坐标）：黑圈=rₛ，虚线=光子球 1.5rₛ，点线=ISCO 3rₛ',15,24);
+c.strokeStyle='#ff6b6b';c.beginPath();c.arc(cx,cy,grResult.rs*sc,0,7);c.stroke();c.setLineDash([5,4]);c.strokeStyle='#8a6d3b';c.beginPath();c.arc(cx,cy,1.5*grResult.rs*sc,0,7);c.stroke();c.strokeStyle='#4c6282';c.beginPath();c.arc(cx,cy,3*grResult.rs*sc,0,7);c.stroke();c.setLineDash([]);
+c.strokeStyle='#55d6e8';c.lineWidth=2;c.beginPath();grResult.traj.forEach((p,i)=>{let x=cx+p.r*Math.cos(p.phi)*sc,y=cy-p.r*Math.sin(p.phi)*sc;i?c.lineTo(x,y):c.moveTo(x,y)});c.stroke();let lp=grResult.traj[grResult.traj.length-1];c.fillStyle='#ffb45c';c.beginPath();c.arc(cx+lp.r*Math.cos(lp.phi)*sc,cy-lp.r*Math.sin(lp.phi)*sc,6,0,7);c.fill()}
+else if(current==='projectile'){let scale=9,ox=45,oy=h-40;c.fillText('x (m)',w-55,h-12);c.fillText('y (m)',8,18);c.strokeStyle='#55d6e8';c.lineWidth=2;c.beginPath();let pts=[];let s=initial(),t=0;for(let i=0;i<2000;i++){pts.push([ox+s[0]*scale,oy-s[1]*scale]);s=rk4(s,.01);t+=.01;if(s[1]<0&&t>.02)break}pts.forEach((p,i)=>i?c.lineTo(...p):c.moveTo(...p));c.stroke();c.fillStyle='#ffb45c';c.beginPath();c.arc(ox+state[0]*scale,oy-state[1]*scale,7,0,Math.PI*2);c.fill();c.fillStyle='#9aabc8';c.fillText('轨迹（模型预测）',50,25)}
+else if(current==='pendulum'){let ox=w/2,oy=85,L=Math.min(180,params.length*110),x=ox+L*Math.sin(state[0]),y=oy+L*Math.cos(state[0]);c.strokeStyle='#8aa4ca';c.lineWidth=3;c.beginPath();c.moveTo(ox,oy);c.lineTo(x,y);c.stroke();c.fillStyle='#55d6e8';c.beginPath();c.arc(x,y,13,0,7);c.fill();c.fillStyle='#9aabc8';c.fillText('θ = '+(state[0]*180/Math.PI).toFixed(2)+'°',20,25)}
+else if(current==='orbit'){let cx=w/2,cy=h/2,sc=Math.min(w,h)/30;c.strokeStyle='#4c6282';c.beginPath();c.arc(cx,cy,params.radius*sc,0,Math.PI*2);c.stroke();c.fillStyle='#ffb45c';c.beginPath();c.arc(cx,cy,12,0,7);c.fill();c.fillStyle='#55d6e8';c.beginPath();c.arc(cx+state[0]*sc,cy-state[1]*sc,7,0,7);c.fill();c.fillStyle='#9aabc8';c.fillText('中心天体固定参考系',15,24)}
+else if(current==='electric'){let sc=32,cx=w/2,cy=h/2;for(let yy=20;yy<h;yy+=22)for(let xx=20;xx<w;xx+=22){let f=field((xx-cx)/sc,(cy-yy)/sc),m=Math.hypot(f.x,f.y),a=Math.atan2(-f.y,f.x);c.strokeStyle='rgba(85,214,232,'+Math.min(.85,.15+Math.log10(m+1)/15)+')';c.beginPath();c.moveTo(xx,yy);c.lineTo(xx+12*Math.cos(a),yy+12*Math.sin(a));c.stroke()}for(let [x,q] of [[cx-params.sep/2*sc,1],[cx+params.sep/2*sc,-1]]){c.fillStyle=q>0?'#ffb45c':'#7197ff';c.beginPath();c.arc(x,cy,10,0,7);c.fill()}c.fillStyle='#9aabc8';c.fillText('场矢量方向（平面采样）',15,24)}
+else if(current==='wave'){let A=params.amp,k=2*Math.PI/params.lambda,om=2*Math.PI*params.freq;c.strokeStyle='#55d6e8';c.lineWidth=2;c.beginPath();for(let x=0;x<w;x++){let xx=(x-w/2)/45,y=h/2-55*A*(Math.sin(k*xx-om*simTime)+Math.sin(k*xx-om*simTime+params.phase));x?c.lineTo(x,y):c.moveTo(x,y)}c.stroke();c.strokeStyle='#344a6b';c.beginPath();c.moveTo(0,h/2);c.lineTo(w,h/2);c.stroke();c.fillStyle='#9aabc8';c.fillText('两列同频简谐波叠加',15,24)}
+else{let cx=w/2,cy=80,rs=params.rs,ex=params.extent;c.strokeStyle='#55d6e8';c.lineWidth=2;c.beginPath();for(let i=0;i<300;i++){let r=rs*1.015+(ex-rs*1.015)*i/299,x=cx+(r-rs)*32,y=cy+Math.sqrt(Math.max(0,rs*(r-rs)))*26;i?c.lineTo(x,y):c.moveTo(x,y)}c.stroke();c.fillStyle='#ffb45c';c.beginPath();c.arc(cx,cy,7,0,7);c.fill();c.fillStyle='#9aabc8';c.fillText('空间切片嵌入示意，不是完整时空图',15,24)}
+}
+function drawSurface3d(c,ox,oy,scale){if(sel.surf==='none')return;let tris=[],N=18,R=7;for(let i=0;i<N;i++)for(let j=0;j<N;j++){let x0=-R+2*R*i/N,x1=-R+2*R*(i+1)/N,y0=-R+2*R*j/N,y1=-R+2*R*(j+1)/N;let a=V3(x0,y0,surfZ(x0,y0)),b=V3(x1,y0,surfZ(x1,y0)),d=V3(x0,y1,surfZ(x0,y1)),e=V3(x1,y1,surfZ(x1,y1));tris.push([a,b,e],[a,e,d])}
+tris=tris.map(t=>{let pa=proj3(t[0],ox,oy,scale),pb=proj3(t[1],ox,oy,scale),pc=proj3(t[2],ox,oy,scale);let n=vcross(vsub(t[1],t[0]),vsub(t[2],t[0])),nl=vlen(n)||1,shade=0.35+0.65*Math.abs(n.z/nl);return {pts:[pa,pb,pc],depth:(pa[2]+pb[2]+pc[2])/3,shade}}).sort((a,b)=>b.depth-a.depth);
+for(let t of tris){c.fillStyle=`rgba(85,214,232,${(0.10+0.18*t.shade).toFixed(3)})`;c.strokeStyle='rgba(85,214,232,0.25)';c.beginPath();c.moveTo(t.pts[0][0],t.pts[0][1]);c.lineTo(t.pts[1][0],t.pts[1][1]);c.lineTo(t.pts[2][0],t.pts[2][1]);c.closePath();c.fill();c.stroke()}}
+function draw3d(){let c=ctx3,w=c.canvas.width,h=c.canvas.height;c.clearRect(0,0,w,h);drawGrid(c,w,h);let ox=w/2,oy=h*.57,sc=16;
+if(current==='thermo'&&gas&&sel.thSys==='gas'){for(let pt of gas.ps){let p=proj3(V3(pt.x*4,pt.y*4,0),ox,oy,sc);c.fillStyle='#55d6e8';c.beginPath();c.arc(p[0],p[1],4,0,7);c.fill()}c.fillStyle='#9aabc8';c.font='12px sans-serif';c.fillText('气体粒子 3D 俯视',12,22);return}
+if(current==='astro'&&astro){for(let pt of astro.ps){let p=proj3(V3(pt.x*2,pt.y*2,pt.z*2),ox,oy,sc);c.fillStyle='#55d6e8';c.beginPath();c.arc(p[0],p[1],3,0,7);c.fill()}c.fillStyle='#9aabc8';c.font='12px sans-serif';c.fillText('N 体 3D 分布：拖动旋转',12,22);return}
+if(current==='chaos'){c.strokeStyle='#55d6e8';c.lineWidth=1.5;c.beginPath();chTrail.forEach((s,i)=>{let p=proj3(V3(s[0],s[1],s[2]-25),ox,oy,4);i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1])});c.stroke();c.fillStyle='#9aabc8';c.font='12px sans-serif';c.fillText('Lorenz 吸引子 3D 相空间：拖动旋转',12,22);return}
+if(current==='fluid'&&fl){c.strokeStyle='#55d6e8';for(let i=0;i<fl.N;i+=2)for(let j=0;j<fl.N;j+=2){let p=proj3(V3((i-16)*0.5,(j-16)*0.5,fl.w[i*fl.N+j]*1.5),ox,oy,sc),q=proj3(V3((i-16)*0.5+fl.u[i*fl.N+j],(j-16)*0.5+fl.v[i*fl.N+j],fl.w[i*fl.N+j]*1.5),ox,oy,sc);c.beginPath();c.moveTo(p[0],p[1]);c.lineTo(q[0],q[1]);c.stroke()}c.fillStyle='#9aabc8';c.font='12px sans-serif';c.fillText('速度矢量 + 涡量高度',12,22);return}
+if(current==='continuum'){c.fillStyle='#9aabc8';c.font='12px sans-serif';c.fillText('1D 杆：3D 视图不适用，见左侧位移/应力曲线',12,22);return}
+if(current==='quantum'&&qm){c.strokeStyle='#55d6e8';c.lineWidth=2;c.beginPath();for(let i=0;i<qm.N;i+=2){let p=proj3(V3((qm.x[i])*0.9,qm.re[i]*4,qm.im[i]*4),ox,oy,sc);i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1])}c.stroke();c.fillStyle='#9aabc8';c.font='12px sans-serif';c.fillText('3D 波函数：(x, Re ψ, Im ψ)，相位沿 x 旋转',12,22);return}
+if(current==='maxwell'&&mx){
+  if(mx.dim==='2d'){let Nx=mx.Nx,Ny=mx.Ny,st=3,tris=[];for(let i=0;i<Nx-st;i+=st)for(let j=0;j<Ny-st;j+=st){let g=(a,b)=>V3((a-Nx/2)*0.22,(b-Ny/2)*0.22,mx.Ez[a*Ny+b]*4);let A=g(i,j),B=g(i+st,j),D=g(i,j+st),E=g(i+st,j+st);tris.push([A,B,E],[A,E,D])}
+    tris=tris.map(t=>{let ps=t.map(q=>proj3(q,ox,oy,sc));return {pts:ps,depth:(ps[0][2]+ps[1][2]+ps[2][2])/3}}).sort((a,b)=>b.depth-a.depth);
+    for(let tr of tris){c.fillStyle='rgba(85,214,232,0.28)';c.strokeStyle='rgba(85,214,232,0.18)';c.beginPath();c.moveTo(tr.pts[0][0],tr.pts[0][1]);c.lineTo(tr.pts[1][0],tr.pts[1][1]);c.lineTo(tr.pts[2][0],tr.pts[2][1]);c.closePath();c.fill();c.stroke()}}
+  else{c.strokeStyle='#55d6e8';c.lineWidth=2;c.beginPath();for(let i=0;i<mx.N;i++){let p=proj3(V3((i-100)*0.12,0,mx.Ez[i]*3),ox,oy,sc);i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1])}c.stroke()}
+  c.fillStyle='#9aabc8';c.font='12px sans-serif';c.fillText('Ez 波面 / 波形 3D 视图：拖动旋转',12,22);return}
+if(current==='analytic'){c.fillStyle='#9aabc8';c.font='12px sans-serif';
+  if(sel.anaSys==='double'){let L=4;for(let s of anaLiveTrail.filter((_,i)=>i%6===0)){let p1=proj3(V3(L*Math.sin(s[0]),-L*Math.cos(s[0]),0),ox,oy,sc),p2=proj3(V3(L*Math.sin(s[0])+L*Math.sin(s[1]),-L*Math.cos(s[0])-L*Math.cos(s[1]),0),ox,oy,sc);c.strokeStyle='rgba(85,214,232,0.25)';c.beginPath();c.moveTo(p1[0],p1[1]);c.lineTo(p2[0],p2[1]);c.stroke()}let a=proj3(V3(0,0,0),ox,oy,sc),b=proj3(V3(L*Math.sin(state[0]),-L*Math.cos(state[0]),0),ox,oy,sc),d=proj3(V3(L*Math.sin(state[0])+L*Math.sin(state[1]),-L*Math.cos(state[0])-L*Math.cos(state[1]),0),ox,oy,sc);c.strokeStyle='#9db5d8';c.lineWidth=3;c.beginPath();c.moveTo(a[0],a[1]);c.lineTo(b[0],b[1]);c.lineTo(d[0],d[1]);c.stroke();c.fillStyle='#55d6e8';c.beginPath();c.arc(d[0],d[1],8,0,7);c.fill()}
+  else{for(let s of anaLiveTrail){let p=proj3(V3(s[0]*2,s[1]*1.2,simTime*0),ox,oy,sc);c.fillStyle='rgba(85,214,232,0.7)';c.fillRect(p[0],p[1],2,2)}}
+  c.fillText('3D 相空间投影：拖动旋转查看 (q, p) 轨迹',12,22);return}
+if(current==='lab3d'){drawSurface3d(c,ox,oy,sc);
+if(sel.showField){for(let x=-6;x<=6;x+=2)for(let y=-6;y<=6;y+=2){let p=V3(x,y,0.5),f=field3(p),m=vlen(f)||1,dir=vscale(f,0.9/m),q=vadd(p,dir);let a=proj3(p,ox,oy,sc),b=proj3(q,ox,oy,sc);c.strokeStyle='rgba(255,180,92,0.85)';c.lineWidth=1.5;c.beginPath();c.moveTo(a[0],a[1]);c.lineTo(b[0],b[1]);c.stroke()}}
+for(let pt of particles){for(let i=1;i<pt.trail.length;i++){let a=proj3(pt.trail[i-1],ox,oy,sc),b=proj3(pt.trail[i],ox,oy,sc);c.strokeStyle='rgba(85,214,232,0.35)';c.beginPath();c.moveTo(a[0],a[1]);c.lineTo(b[0],b[1]);c.stroke()}let p=proj3(pt.p,ox,oy,sc);c.fillStyle='#55d6e8';c.beginPath();c.arc(p[0],p[1],Math.max(1.5,5/p[2]*2),0,7);c.fill()}
+c.fillStyle='#9aabc8';c.font='12px sans-serif';c.fillText('真实 3D：透视投影 · 粒子 '+particles.length+' 个 · 场 '+sel.field+' · 曲面 '+sel.surf,12,22);return}
+if(current==='gr'&&grResult){let rs=grResult.rs;for(let r=rs*1.05;r<rs+8;r+=0.5){c.strokeStyle='#426c91';c.beginPath();for(let a=0;a<=Math.PI*2+.05;a+=.04){let z=2*Math.sqrt(rs*(r-rs)),p=proj3(V3(r*Math.cos(a),r*Math.sin(a),z*0.4),ox,oy,sc);a?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1])}c.stroke()}
+c.strokeStyle='#55d6e8';c.lineWidth=2;c.beginPath();grResult.traj.forEach((p,i)=>{let q=proj3(V3(p.r*Math.cos(p.phi),p.r*Math.sin(p.phi),2*Math.sqrt(rs*Math.max(0,p.r-rs))*0.4),ox,oy,sc);i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1])});c.stroke();c.fillStyle='#9aabc8';c.font='12px sans-serif';c.fillText('测地线贴在 Flamm 嵌入面上方（示意高度，非时空坐标）',12,22);return}
+let ca=Math.cos(angle),sa=Math.sin(angle);function proj(x,y,z){let X=x*ca-y*sa,Y=x*sa+y*ca;return [ox+X*sc,oy-Y*sc-z*sc*.65]}
+c.strokeStyle='#344b70';for(let i=-10;i<=10;i++){let a=proj(i,-10,0),b=proj(i,10,0),d=proj(-10,i,0),e=proj(10,i,0);c.beginPath();c.moveTo(...a);c.lineTo(...b);c.stroke();c.beginPath();c.moveTo(...d);c.lineTo(...e);c.stroke()}
+if(current==='spacetime'){for(let r=params.rs*1.08;r<params.extent;r+=.4){c.strokeStyle='#426c91';c.beginPath();for(let a=0;a<=Math.PI*2+.05;a+=.04){let z=Math.sqrt(params.rs*(r-params.rs)),p=proj(r*Math.cos(a),r*Math.sin(a),z);a?c.lineTo(...p):c.moveTo(...p)}c.stroke()}}
+else if(current==='orbit'){let s=initial();c.strokeStyle='#55d6e8';c.beginPath();for(let i=0;i<1300;i++){let p=proj(s[0],s[1],0);i?c.lineTo(...p):c.moveTo(...p);s=rk4(s,.02)}c.stroke();let p=proj(state[0],state[1],0);c.fillStyle='#ffb45c';c.beginPath();c.arc(...p,7,0,7);c.fill()}
+else if(current==='projectile'){let s=initial();c.strokeStyle='#55d6e8';c.beginPath();for(let i=0;i<1200;i++){let p=proj(s[0],0,s[1]);i?c.lineTo(...p):c.moveTo(...p);s=rk4(s,.01);if(s[1]<0&&i>1)break}c.stroke();let p=proj(state[0],0,state[1]);c.fillStyle='#ffb45c';c.beginPath();c.arc(...p,7,0,7);c.fill()}
+else if(current==='pendulum'){let L=params.length,px=L*Math.sin(state[0]),pz=L*Math.cos(state[0]),a=proj(0,0,0),b=proj(px,0,pz);c.strokeStyle='#9db5d8';c.lineWidth=3;c.beginPath();c.moveTo(...a);c.lineTo(...b);c.stroke();c.fillStyle='#55d6e8';c.beginPath();c.arc(...b,10,0,7);c.fill()}
+else if(current==='electric'){for(let x=-8;x<=8;x+=1.2)for(let y=-5;y<=5;y+=1.2){let f=field(x,y),m=Math.hypot(f.x,f.y),p=proj(x,y,0),q=proj(x+.18*f.x/(m+1e-9),y+.18*f.y/(m+1e-9),0);c.strokeStyle='#55d6e8';c.beginPath();c.moveTo(...p);c.lineTo(...q);c.stroke()}}
+else{for(let z=-2;z<=2;z+=.5){c.strokeStyle='#55d6e8';c.beginPath();for(let x=-9;x<=9;x+=.15){let p=proj(x,z,Math.sin(x*.6+simTime)*.7);x===-9?c.moveTo(...p):c.lineTo(...p)}c.stroke()}}
+c.fillStyle='#9aabc8';c.font='12px sans-serif';c.fillText('拖动鼠标可旋转观察 · 滚轮缩放',12,22)}
+function drawChart(){let c=ch,w=c.canvas.width,h=c.canvas.height;c.clearRect(0,0,w,h);drawGrid(c,w,h);
+if(current==='mathphys'){let mc=mathCompute();c.strokeStyle='#55d6e8';c.lineWidth=2;c.beginPath();for(let i=0;i<128;i++){let x=35+i/127*(w-70),y=h-35-Math.log10(Math.max(mc.spec[i],1e-3)+1)*60;i?c.lineTo(x,y):c.moveTo(x,y)}c.stroke();c.fillStyle='#9aabc8';c.font='12px sans-serif';c.fillText('频谱 |F(k)|（k=0–127），高斯峰 + 正弦分量尖峰',35,18);return}
+if(current==='analytic'&&analyticResult){let cols={euler:'#ff6b6b',symp_euler:'#ffb45c',verlet:'#7fe0a2',rk4:'#55d6e8',imp_mid:'#c792ea'},all=[];for(let m in analyticResult.series)all=all.concat(analyticResult.series[m].map(d=>d[1]));let lo=1e-12,hi=Math.max(1e-6,...all),pad=35;for(let m in analyticResult.series){let ser=analyticResult.series[m];c.strokeStyle=cols[m]||'#fff';c.lineWidth=2;c.beginPath();ser.forEach((d,i)=>{let x=pad+d[0]/(analyticResult.T||50)*(w-2*pad),y=h-pad-(Math.log10(Math.max(d[1],lo))-Math.log10(lo))/(Math.log10(hi)-Math.log10(lo))*(h-2*pad);i?c.lineTo(x,y):c.moveTo(x,y)});c.stroke()}c.fillStyle='#9aabc8';c.font='12px sans-serif';let lx=pad;for(let m in analyticResult.series){c.fillStyle=cols[m];c.fillText(m,lx,18);lx+=c.measureText(m).width+18}c.fillStyle='#9aabc8';c.fillText('log₁₀|ΔE/E₀|，辛积分器曲线有界、RK4 随时间上漂',pad,h-8);return}
+if(data.length<2)return;let xs=data.map(d=>d[0]),ys=data.map(d=>d[1]),xmin=Math.min(...xs),xmax=Math.max(...xs),ymin=Math.min(...ys),ymax=Math.max(...ys);if(ymax===ymin){ymax+=1;ymin-=1}if(xmax===xmin)xmax=xmin+1;let pad=35;c.strokeStyle='#55d6e8';c.lineWidth=2;c.beginPath();data.forEach((d,i)=>{let x=pad+(d[0]-xmin)/(xmax-xmin)*(w-2*pad),y=h-pad-(d[1]-ymin)/(ymax-ymin)*(h-2*pad);i?c.lineTo(x,y):c.moveTo(x,y)});c.stroke();c.fillStyle='#9aabc8';c.font='12px sans-serif';c.fillText(current==='validation'?'log₁₀h → log₁₀误差，斜率≈阶数':'t = '+simTime.toFixed(2)+' s',pad,18);c.fillText('min '+ymin.toFixed(3)+' / max '+ymax.toFixed(3),w-190,18)}
+function diagnostics(){let m=[];$('#extraTables').innerHTML='';
+if(current==='thermo'){
+  if(sel.thSys==='gas'&&gas){let v2=gas.ps.reduce((s,pt)=>s+pt.vx*pt.vx+pt.vy*pt.vy,0)/gas.ps.length,ms=gas.ps.reduce((s,pt)=>s+Math.hypot(pt.vx,pt.vy),0)/gas.ps.length;m=[['粒子数',String(gas.ps.length)],['<v²>',v2.toFixed(3)+'（MB 预期 2）'],['平均速率',ms.toFixed(3)+'（预期 1.253）'],['温度 T=<v²>/2', (v2/2).toFixed(3)]];$('#diagnostic').innerHTML='硬盘弹性碰撞使速度分布弛豫到 Maxwell–Boltzmann 分布；温度由动能定义，碰撞本身不改变总动能。'}
+  else if(th){m=[['中心温度',th.T[Math.floor(th.N/2)].toFixed(4)],['解析振幅',Math.exp(-th.alpha*Math.PI*Math.PI*th.t).toFixed(4)],['时间 t',th.t.toFixed(2)]];$('#diagnostic').innerHTML='两端 Dirichlet 边界（T=0），热量从两端流出；sin πx 是第一本征模，衰减率 απ²。'}
+  if(thermoResult){let g=thermoResult;$('#extraTables').innerHTML=`<table class="vtab"><tr><th>验证项</th><th>实测</th><th>解析</th></tr><tr><td>热模振幅 t=10</td><td>${g.heat10.toFixed(3)}</td><td>${g.heat10ana.toFixed(3)}</td></tr><tr><td>热模振幅 t=50</td><td>${g.heat50.toFixed(3)}</td><td>${g.heat50ana.toFixed(3)}</td></tr><tr><td>气体 &lt;v²&gt;</td><td>${g.v2.toFixed(3)}</td><td>2.000</td></tr><tr><td>气体平均速率</td><td>${g.ms.toFixed(3)}</td><td>1.253</td></tr><tr><td>速率直方图最大偏差</td><td>${g.maxdev.toFixed(3)}</td><td>0（N→∞）</td></tr></table><div class="note">直方图偏差是有限粒子数（N=60）的统计涨落，约 1/√N 量级。</div>`}}
+else if(current==='mathphys'){let mc=mathCompute();m=[['Parseval 比',mc.parseRatio.toFixed(4)],['高斯 FT 相对误差',mc.gaussErr.toExponential(2)],['Gibbs 过冲峰值',mc.gibbs.toFixed(3)+'（理论 1.179）'],['信号点数', '256']];$('#diagnostic').innerHTML='FFT 为基 2 迭代实现；频谱图为 |F(k)|，k=0 在左。';
+if(mathResult){let g=mathResult;$('#extraTables').innerHTML=`<table class="vtab"><tr><th>验证项</th><th>实测</th><th>理论</th></tr><tr><td>Parseval 比</td><td>${g.parseRatio.toFixed(4)}</td><td>1.0000</td></tr><tr><td>高斯 FT 最大相对误差</td><td>${g.gaussErr.toExponential(2)}</td><td>~1e-6</td></tr><tr><td>Gibbs 过冲</td><td>${g.gibbs.toFixed(3)}</td><td>1.179（+8.9%）</td></tr></table><div class="note">Green 函数：−u″=f 在 Dirichlet 边界下的解可由本征展开得到，与 FEM 杆的 −(EA u′)′=f 是同一类边值问题，见连续介质模块。</div>`}}
+else if(current==='astro'&&astro){let e=astroEnergy();m=[['总能量 E',e.E.toFixed(4)],['动能 T',e.T.toFixed(3)],['势能 U',e.U.toFixed(3)],['位力 2T/|U|',(2*e.T/Math.abs(e.U)).toFixed(3)+'（平衡≈1）']];$('#diagnostic').innerHTML='Leapfrog 是辛积分器，能量漂移有界；软化 ε²=0.01 避免近距离发散。';
+if(astroResult){let g=astroResult;$('#extraTables').innerHTML=`<table class="vtab"><tr><th>验证项</th><th>实测</th><th>理论</th></tr><tr><td>能量相对漂移 (T=5)</td><td>${g.drift.toExponential(2)}</td><td>~0（辛积分）</td></tr><tr><td>位力比 2T/|U|</td><td>${g.virial.toFixed(3)}</td><td>1.000（平衡）</td></tr>${g.bins.map(b=>`<tr><td>旋转曲线 r=${b.r.toFixed(1)} (n=${b.n})</td><td>${b.meas.toFixed(3)}</td><td>${b.ana.toFixed(3)}</td></tr>`).join('')}${g.lens.map(l=>`<tr><td>透镜偏折 b=${l.b}</td><td>${l.alpha.toFixed(2)} rad</td><td>4/b rad</td></tr>`).join('')}</table>`}}
+else
+if(current==='chaos'&&chState){m=[['x',chState[0].toFixed(3)],['y',chState[1].toFixed(3)],['z',chState[2].toFixed(3)],['ρ',String(params.crho||28)]];
+$('#diagnostic').innerHTML='Lorenz 系统在 ρ>24.74 后出现混沌吸引子；两条轨迹的分离呈指数增长，斜率即最大 Lyapunov 指数。';
+if(chaosResult){let g=chaosResult;$('#extraTables').innerHTML=`<table class="vtab"><tr><th>验证项</th><th>实测</th><th>文献</th></tr><tr><td>Lyapunov 指数 λ</td><td>${g.lambda.toFixed(2)} /s</td><td>0.905 /s（长期）</td></tr><tr><td>分离量 d(10s)</td><td>${g.d10.toExponential(1)}</td><td>~1e-6 起始，指数增长</td></tr><tr><td>分离量 d(20s)</td><td>${g.d20.toExponential(1)}</td><td>饱和 ~O(10)</td></tr></table><div class="note">有限时间 λ 在 0.7–0.9 间浮动是正常的：吸引子上的局部拉伸率不均匀，窗口不同结果不同。</div>`}}
+else if(current==='fluid'&&fl){let E=fluidEnergy()/fl.E0;m=[['动能 E/E₀',E.toFixed(4)],['解析 E/E₀',Math.exp(-4*fl.nu*fl.t).toFixed(4)],['黏度 ν',String(fl.nu)],['时间 t',fl.t.toFixed(2)]];
+$('#diagnostic').innerHTML='速度由流函数求导得到，离散散度恒为零；Jacobi 迭代 30 次解泊松方程，残差随迭代下降。';
+if(fluidResult){let g=fluidResult;$('#extraTables').innerHTML=`<table class="vtab"><tr><th>t</th><th>实测 E/E₀</th><th>解析 exp(−4νt)</th></tr>${g.rows.map(r=>`<tr><td>${r.t}</td><td>${r.meas.toFixed(3)}</td><td>${r.ana.toFixed(3)}</td></tr>`).join('')}</table><div class="note">实测比解析衰减稍快是数值黏性所致，网格加密后接近解析值。</div>`}}
+else if(current==='continuum'&&femResult){let g=femResult;m=[['单元数 N',String(Math.round(params.femN)||16)],['尖端位移',g.cur.tip.toFixed(4)+'（解析 0.3183）'],['最大误差',g.cur.err.toExponential(2)],['弹性模量 E',String(g.E)]];
+$('#diagnostic').innerHTML='刚度矩阵由单元刚度组装，固定端 u(0)=0，自由端自然边界。应力 σ=E·du/dx 在单元内为常数。';
+$('#extraTables').innerHTML=`<table class="vtab"><tr><th>单元数 N</th><th>最大误差</th><th>误差阶</th></tr>${g.rows.map(r=>`<tr><td>${r.N}</td><td>${r.err.toExponential(2)}</td><td>${r.order?r.order.toFixed(2):'—'}</td></tr>`).join('')}</table>`}
+else
+if(current==='quantum'&&qm){let o=cnObs(qm);
+m=[['模 ∫|ψ|²',o.norm.toFixed(6)],['<E>',o.E.toFixed(4)],['<x>',o.xbar.toFixed(3)],['Δx',o.dxu.toFixed(3)],['Δp',o.dpu.toFixed(3)],['Δx·Δp',o.prod.toFixed(3)+' (≥0.5)'],['透射概率',qm.sys==='barrier'?o.Tp.toFixed(3):'—'],['反射概率',qm.sys==='barrier'?o.Rp.toFixed(3):'—']];
+$('#diagnostic').innerHTML='CN 是酉演化：模严格守恒（至 Thomas 求解精度），能量期望在定态势中守恒。Δp 由中心差分估算，网格较粗时略有偏差。';
+if(quantumResult){let g=quantumResult;$('#extraTables').innerHTML=`<table class="vtab"><tr><th>验证项</th><th>实测</th><th>解析</th><th>结论</th></tr><tr><td>自由波包模，T=2 / 4</td><td>${g.norm2.toFixed(6)} / ${g.norm4.toFixed(6)}</td><td>1.000000</td><td>${Math.abs(g.norm2-1)<1e-3?'✓':'△'}</td></tr><tr><td>自由波包 σ(2) / σ(4)</td><td>${g.dx2.toFixed(3)} / ${g.dx4.toFixed(3)}</td><td>${g.dx2ana.toFixed(3)} / ${g.dx4ana.toFixed(3)}</td><td>${Math.abs(g.dx2-g.dx2ana)<0.05?'✓':'△'}</td></tr><tr><td>自由波包 &lt;x&gt;(2) / (4)</td><td>${g.x2.toFixed(2)} / ${g.x4.toFixed(2)}</td><td>0.00 / 4.00</td><td>${Math.abs(g.x2)<0.1?'✓':'△'}</td></tr><tr><td>不确定积 Δx·Δp (t=0)</td><td>${g.prod0.toFixed(3)}</td><td>0.500（最小不确定）</td><td>${Math.abs(g.prod0-0.5)<0.1?'✓':'△'}</td></tr><tr><td>HO n=1 能量</td><td>${g.Eho.toFixed(3)}</td><td>1.500</td><td>${Math.abs(g.Eho-1.5)<0.01?'✓':'△'}</td></tr><tr><td>HO n=1 |ψ|² 变化 (T=1)</td><td>${g.dpsi.toExponential(1)}</td><td>0（定态）</td><td>${g.dpsi<1e-2?'✓':'△'}</td></tr><tr><td>隧穿透射 T (V₀=2, E=1.125)</td><td>${g.Tmeas.toFixed(3)}</td><td>${g.Tana.toFixed(3)}（平面波）</td><td>${Math.abs(g.Tmeas-g.Tana)<0.02?'✓':'△ 包平均'}</td></tr></table><div class="note">隧穿实测是波包平均透射：包的能量展宽 ΔE≈k₀Δp≈0.75，与 E 相当，故与单色平面波公式有百分之几的偏差是预期的，不是求解器错误。T=8 时测，L=40 盒子足够大，边界吸收可忽略。</div>`}}
+else
+if(current==='maxwell'&&mx){let dt=mx.dt,lim=mx.dim==='1d'?1:1/Math.sqrt(2),S=dt*(mx.dim==='1d'?1:Math.sqrt(2)),stable=S<1;
+let maxEz=mx.dim==='1d'?Math.max(...Array.from(mx.Ez,Math.abs)):Math.max(...Array.from(mx.Ez,Math.abs));
+let probe=mx.dim==='1d'?-mx.Ez[100]*(mx.Hy[99]+mx.Hy[100])/2:0;
+m=[['Courant 数 S',S.toFixed(3)+' / 上限 1 '+(stable?'✓ 稳定':'⚠ 失稳')],['时间步 dt',dt.toFixed(3)],['max |Ez|',maxEz.toFixed(4)],['总能量 u',mxEnergy().toFixed(3)],['∇·B 残差比',mx.dim==='2d'?mxDivB().toExponential(2):'—（1D 恒为 0）'],['探针 Poynting S_x',mx.dim==='1d'?probe.toFixed(4):'—（2D 见热图）']];
+$('#diagnostic').innerHTML='Yee 网格：Ez 在整数节点/整数时刻，H 在半节点/半时刻交错推进，∇·B 由网格结构自动保持。S>1 时数值解指数发散，是 Courant 条件而非物理。';
+if(maxwellResult){let g=maxwellResult;$('#extraTables').innerHTML=`<table class="vtab"><tr><th>验证项</th><th>实测</th><th>解析 / 理论</th><th>结论</th></tr><tr><td>脉冲速度 v/c</td><td>${g.speed.toFixed(3)}</td><td>1.000</td><td>${g.speedErr<0.02?'✓':'△'}</td></tr><tr><td>Fresnel 反射比 r (ε=4)</td><td>${g.fresR.toFixed(3)}</td><td>${g.fresRana.toFixed(3)}</td><td>${Math.abs(g.fresR-g.fresRana)<0.03?'✓':'△'}</td></tr><tr><td>Fresnel 透射比 t (ε=4)</td><td>${g.fresT.toFixed(3)}</td><td>${g.fresTana.toFixed(3)}</td><td>${Math.abs(g.fresT-g.fresTana)<0.05?'✓':'△'}</td></tr><tr><td>2D ∇·B 残差比</td><td>${g.divB.toExponential(2)}</td><td>0（机器精度）</td><td>${g.divB<1e-12?'✓':'△'}</td></tr><tr><td>Courant S=1.2, 60 步 max|Ez|</td><td>${g.courantBlow.toExponential(1)}</td><td>~0.5（稳定时）</td><td>${g.courantBlow>1e6?'✓ 失稳如预期':'△'}</td></tr><tr><td>数值色散 v_p/c, f=0.05 / 0.10</td><td>${g.vp1.toFixed(3)} / ${g.vp2.toFixed(3)}</td><td>1.000（连续介质）</td><td>高频色散更大</td></tr></table><div class="note">Fresnel 用半无限介质板（ε 从 x=150 延伸到右端），避免有限板第二界面的多次反射干扰；有限板透射应为 t₁·t₂=0.889，见 Python 预验算。色散公式：sin(ωdt/2)=S·sin(kdx/2)，S=0.5。</div>`}}
+else
+if(current==='analytic'&&analyticResult){let a=analyticResult,best=a.rows.reduce((x,y)=>y.maxd<x.maxd?y:x);
+m=[['系统',a.sys==='double'?'双摆（不可分）':a.sys==='osc'?'谐振子':'单摆'],['步长 / 时长',a.dt+' s / '+a.T+' s'],['能量最稳',best.label+' '+best.maxd.toExponential(2)],['Lyapunov λ',a.lyap?a.lyap.lambda.toFixed(2)+' /s':'—（仅双摆）']];
+$('#diagnostic').innerHTML='辛 ≠ 能量误差为零：辛积分器的能量误差有界、不随时间累积；RK4 短期最准，但误差随 T 线性漂移。双摆 H 不可分时辛 Euler/Verlet 不适用，须用隐式中点。';
+$('#extraTables').innerHTML=`<table class="vtab"><tr><th>积分器</th><th>辛？</th><th>max |ΔE/E₀|</th><th>末态 |ΔE/E₀|</th></tr>${a.rows.map(r=>`<tr><td>${r.label}</td><td>${r.symplectic?'是':'否'}</td><td>${r.maxd.toExponential(3)}</td><td>${r.finald.toExponential(3)}</td></tr>`).join('')}</table>`+(a.lyap?`<div class="note">Lyapunov 指数 λ≈${a.lyap.lambda.toFixed(2)}/s：初值差 1e-6，5s 后分离 ${a.lyap.d5.toExponential(1)}，10s 后 ${a.lyap.d10.toExponential(1)}，约 ${Math.log(1e6)/a.lyap.lambda>0?(Math.log(1e6)/a.lyap.lambda).toFixed(1):'—'}s 后完全失去可预报性（分离 ~O(1)）。拟合窗口为分离量 1e-4–0.1 之间，log 线性回归。</div>`:`<div class="note">把系统切到双摆可看 Lyapunov 指数；可分系统（谐振子/单摆）无混沌，λ 无意义。</div>`)}
+else
+if(current==='validation'&&validationResult){let v=validationResult,ok=Math.abs(v.rows[3].order-v.theory)<0.6;
+m=[['测试系统',v.sys],['积分器',v.method+'（理论阶 '+v.theory+'）'],['实测末阶',v.rows[3].order?v.rows[3].order.toFixed(2):'—'],['判定',ok?'✓ 与理论阶一致':'△ 偏离理论阶，检查 dt/T']];
+$('#diagnostic').innerHTML='误差定义：与 h/32 的 RK4 高精度参考解在 T 时刻的状态差（欧氏范数），参考解与被测方法无关，这样 Euler/RK2/RK4 的阶数才能直接比较。阶数由相邻两档误差比 log₂ 得到；RK4 每减半步长误差应缩小约 16 倍。';
+$('#extraTables').innerHTML=`<table class="vtab"><tr><th>步长 h</th><th>误差 E(h)</th><th>误差阶 p</th><th>max |ΔE/E₀|</th></tr>${v.rows.map(r=>`<tr><td>${r.h.toFixed(4)}</td><td>${r.err.toExponential(3)}</td><td>${r.order?r.order.toFixed(2):'—'}</td><td>${r.maxDE?r.maxDE.toExponential(2):'—（能量不守恒系统）'}</td></tr>`).join('')}</table><div class="note">能量漂移只对单摆（γ=0）与圆轨道有意义：RK4 的能量误差同样按 h⁴ 缩小。本次单摆预验算：dt 0.04→0.005，能量漂移 2.8e-6→1.7e-10。</div>`}
+else if(current==='lab3d'){let E=particleEnergy.length?particleEnergy[particleEnergy.length-1][1]:0;m=[['粒子数',particles.length],['场',sel.field],['曲面',sel.surf],['平均能量/粒子',E.toFixed(4)]];$('#diagnostic').innerHTML='粒子用速度 Verlet（辛积分，能量漂移小）；中心引力在 r→0 时发散，粒子穿过中心附近时需小步长。曲面为参数网格三角剖分，按深度排序。'}
+else if(current==='gr'&&grResult){let g=grResult;m=[['求值点 r',g.r.toFixed(2)],['max |Ricci|',g.maxRic.toExponential(2)],['Kretschmann 数值',g.Knum.toExponential(4)],['Kretschmann 解析',g.Kana.toExponential(4)],['K 相对误差',g.Krel.toExponential(2)],['测地线 E 漂移',g.maxEDrift.toExponential(2)],['测地线 L 漂移',g.maxLDrift.toExponential(2)],['是否坠入视界',g.plunged?'是（r≤1.02rₛ 停止）':'否']];
+$('#diagnostic').innerHTML=`真空 Schwarzschild 的 Ricci 应为 0（数值残差 ${g.maxRic.toExponential(1)}）；Kretschmann 解析值 12rₛ²/r⁶。测地线守恒量 E=(1−rₛ/r)uᵗ、L=r²uᵠ 的漂移反映 RK4 积分误差。`;
+let names=['t','r','θ','φ'];$('#extraTables').innerHTML=`<h3 style="margin-top:12px">Christoffel 符号 Γ<sup>μ</sup><sub>νρ</sub>（非零项，数值 vs 解析）</h3><table class="vtab"><tr><th>分量</th><th>数值微分</th><th>解析式</th><th>|差|</th></tr>${g.gam.map(x=>`<tr><td>Γ<sup>${names[x.mu]}</sup><sub>${names[x.nu]}${names[x.rho]}</sub></td><td>${x.num.toFixed(6)}</td><td>${x.an.toFixed(6)}</td><td>${x.err.toExponential(1)}</td></tr>`).join('')}</table><div class="note">最大 |数值−解析| = ${g.maxGammaErr.toExponential(2)}。Riemann 由解析 Γ 的中心差分求导得到（h=1e-4），Ricci 再缩并；Kretschmann 全张量缩并。</div>`}
+else if(current==='projectile'){let [x,y,vx,vy]=state;m=[['时间',simTime.toFixed(3)+' s'],['水平位移',x.toFixed(3)+' m'],['高度',y.toFixed(3)+' m'],['速率',Math.hypot(vx,vy).toFixed(3)+' m/s']];$('#diagnostic').innerHTML='数值状态：ẍ = −(b/m)vₓ； ÿ = −g−(b/m)vᵧ。地面事件以 y=0 作为停止条件。'}
+else if(current==='pendulum'){let E=.5*params.length**2*state[1]**2+params.g*params.length*(1-Math.cos(state[0]));m=[['时间',simTime.toFixed(3)+' s'],['角位移',(state[0]*180/Math.PI).toFixed(3)+' °'],['角速度',state[1].toFixed(4)+' rad/s'],['机械能',E.toFixed(4)+' J/kg']];$('#diagnostic').innerHTML='小角度周期 T₀ = '+(2*Math.PI*Math.sqrt(params.length/params.g)).toFixed(4)+' s；当前采用完整非线性方程。'}
+else if(current==='orbit'){let r=Math.hypot(state[0],state[1]),v=Math.hypot(state[2],state[3]),E=.5*v*v-params.mu/r,L=state[0]*state[3]-state[1]*state[2];m=[['时间',simTime.toFixed(3)+' s'],['轨道半径',r.toFixed(4)],['比机械能',E.toFixed(5)],['比角动量',L.toFixed(5)]];$('#diagnostic').innerHTML='比能量 ε=v²/2−μ/r。ε<0 为束缚轨道，ε=0 为抛物线边界，ε>0 为非束缚轨道。'}
+else if(current==='electric'){let f=field(params.probe,0);m=[['探测点 Ex',(f.x/1e3).toFixed(3)+' kV/m'],['探测点 Ey',(f.y/1e3).toFixed(3)+' kV/m'],['电场强度',(Math.hypot(f.x,f.y)/1e3).toFixed(3)+' kV/m'],['探测位置',params.probe.toFixed(2)+' m']];$('#diagnostic').innerHTML='正负电荷构成电偶极子。电场满足线性叠加；电荷附近存在点源奇异性。'}
+else if(current==='wave'){let omega=2*Math.PI*params.freq,k=2*Math.PI/params.lambda;m=[['频率',params.freq.toFixed(3)+' Hz'],['波长',params.lambda.toFixed(3)+' m'],['相速度',(omega/k).toFixed(3)+' m/s'],['相位差',params.phase.toFixed(3)+' rad']];$('#diagnostic').innerHTML='干涉振幅包络由相位差决定；φ=π 时理想等振幅相消，φ=0 时相长。'}
+else{let r=Math.max(params.rs*1.02,params.rs*1.5),fac=metricFactor(r);m=[['史瓦西半径',params.rs.toFixed(3)],['当前半径',r.toFixed(3)],['空间径向因子',fac.toFixed(4)],['r / rₛ',(r/params.rs).toFixed(3)]];$('#diagnostic').innerHTML='gᵣᵣ=(1−rₛ/r)⁻¹。r→rₛ⁺ 时该坐标表达式发散；这不意味着曲率不变量在视界处必然发散。'}
+$('#metrics').innerHTML=m.map(x=>`<div class="metric"><small>${x[0]}</small><strong>${x[1]}</strong></div>`).join('');let sm=$('#sideMetrics');if(sm)sm.innerHTML=`<div class="metric"><small>仿真时间</small><strong>${simTime.toFixed(2)} s</strong></div><div class="metric"><small>积分器</small><strong>${current==='gr'?'测地线 RK4':current==='thermo'?'FD/MD':current==='mathphys'?'FFT':current==='astro'?'leapfrog':current==='chaos'?'RK4':current==='fluid'?'NS':current==='continuum'?'FEM':current==='quantum'?'CN':current==='maxwell'?'FDTD':current==='analytic'?sel.anaMethod:current==='lab3d'?'速度 Verlet':['projectile','pendulum','orbit'].includes(current)?'RK4':'解析/采样'}</strong></div>`;$('#log').textContent='MODEL: '+current+'\nSOLVER: '+(current==='gr'?'GR numeric Gamma + geodesic RK4':current==='thermo'?'heat FD / MD':current==='mathphys'?'FFT':current==='astro'?'N-body leapfrog':current==='chaos'?'Lorenz RK4':current==='fluid'?'vorticity-streamfunction NS':current==='continuum'?'FEM Thomas':current==='quantum'?'Schrödinger Crank-Nicolson':current==='maxwell'?'FDTD Yee grid':current==='analytic'?'Hamiltonian + symplectic integrators':current==='validation'?'convergence Richardson + energy drift':current==='lab3d'?'3D Verlet + perspective projection':'classical RK4 / analytical field sampling')+'\nTIME: '+simTime.toFixed(5)+' s\nSAMPLES: '+data.length+'\nNOTE: 3.0 补齐全部 10 个推荐实验：混沌 Lorenz、NS 流体、FEM 杆、热传导+分子动力学、FFT/Gibbs、N 体+透镜；全部数值均为本机实时计算。'}
+function drawAll(){draw2d();draw3d();drawChart();diagnostics()}
+function loop(ts){if(!last)last=ts;let dt=Math.min(.04,(ts-last)/1000);last=ts;if(running){advance(dt);drawAll()}raf=requestAnimationFrame(loop)}
+document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>{document.querySelectorAll('.navbtn').forEach(x=>x.classList.remove('active'));b.classList.add('active');current=b.dataset.id;makeControls()});
+let dragging=false,px=0,py=0;$('#view3d').addEventListener('pointerdown',e=>{dragging=true;px=e.clientX;py=e.clientY});window.addEventListener('pointerup',()=>dragging=false);$('#view3d').addEventListener('pointermove',e=>{if(dragging){angle+=(e.clientX-px)*.01;pitch=Math.max(-1.2,Math.min(1.2,pitch+(e.clientY-py)*.008));px=e.clientX;py=e.clientY;draw3d()}});
+$('#view3d').addEventListener('wheel',e=>{e.preventDefault();camDist=Math.max(0.5,Math.min(2.5,camDist*(1+Math.sign(e.deltaY)*0.08)));draw3d()},{passive:false});
+makeControls();requestAnimationFrame(loop);
+</script></body></html>
