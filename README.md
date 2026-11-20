@@ -77,3 +77,26 @@
 - 2.2：麦克斯韦 + FDTD
 - 2.3：量子力学
 - 3.0：补齐混沌、流体、连续介质、热统、数学物理、天体——18 个模块
+
+## Go 桌面版（Windows EXE）
+
+用 Go 写的桌面版在仓库根目录：`main.go`、`go.mod`、`go.sum`（Go 1.25.4，纯 Go、无 CGO，
+依赖 `github.com/jchv/go-webview2`）。它把 `PhysicsLab.html` 内嵌进程序，启动一个只监听
+`127.0.0.1` 的本地服务，用 WebView2（Edge 内核）窗口显示，双击即开，不走默认浏览器、不联网。
+数值计算仍由原页面的 JS 完成，Go 只负责装载与窗口。
+
+下载：[v1.0.0 Release](https://github.com/enoonc-sketch/physics-lab/releases/tag/v1.0.0) 里的
+`PhysicsLab.exe`（6.9MB，单文件，免安装）。电脑上需要 Microsoft Edge WebView2 运行时，
+Win11 / 新版 Win10 一般自带；没有时会弹框说明，点“确定”退回默认浏览器打开。
+
+从源码构建：
+
+```sh
+GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" -o PhysicsLab.exe .
+```
+
+命令行模式：`PhysicsLab.exe --check` 自检、`--server-only` 只启动本地服务、
+`--browser` 用默认浏览器打开。
+
+说明：v1.0.0 的 EXE 在沙箱 Wine 下自检通过（`--check` 打印 `CHECK OK`），未在真 Windows
+上验过，未签名，首次运行 SmartScreen 可能弹警告。
